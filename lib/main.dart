@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
-
+import 'package:html/parser.dart' show parse;
 void main() {
   runApp(const MyApp());
 }
@@ -49,7 +49,19 @@ class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
+// class ImageList <List> {
+//
+// }
+class Image{
+  String src = '';
+  String size = '';
+  String href = '';
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "src:$src size:$size href:$href";
+  }
+}
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
@@ -64,12 +76,36 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     getImage();
   }
+
   Future<void> getImage() async {
     var url = Uri.https('wallhaven.cc', 'toplist',{'page':"1"});
-    print(url);
+    // print(url);
     var response = await http.get(url, headers: {'x-requested-with': 'XMLHttpRequest'});
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    // print('Response status: ${response.statusCode}');
+    // print('Response body: ${response.body}');
+    var document = parse(response.body);
+    var figureList = document.getElementsByTagName("figure");
+    for (var element in figureList) {
+      var img = element.querySelector('img');
+      var imageList = <Image>[];
+      var href = element.querySelector('.preview');
+      var size = element.querySelector('.wall-res');
+      var obj = Image();
+      img?.attributes.forEach((key, value) {
+          if(key == "data-src"){
+            obj.src = value;
+          }
+      });
+      href?.attributes.forEach((key, value) {
+        if(key == "href"){
+          obj.href = value;
+        }
+      });
+      // obj.size = size?.children[0].toString()!;
+      imageList.add(obj);
+      print(obj);
+    }
+    print(document.outerHtml);
   }
 
   @override
