@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:async';
 import 'package:html/parser.dart' show parse;
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 void main() {
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -49,10 +49,11 @@ class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
+
 // class ImageList <List> {
 //
 // }
-class Image{
+class WallImage {
   String src = '';
   String size = '';
   String href = '';
@@ -62,50 +63,96 @@ class Image{
     return "src:$src size:$size href:$href";
   }
 }
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
+class _MyHomePageState extends State<MyHomePage> {
+  List<Widget> _imageList = [];
+  List<WallImage> _imageDataList = [];
+  int _pageNum = 1;
+  bool _loading = false;
   void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
     getImage();
   }
 
-  Future<void> getImage() async {
-    var url = Uri.https('wallhaven.cc', 'toplist',{'page':"1"});
-    // print(url);
-    var response = await http.get(url, headers: {'x-requested-with': 'XMLHttpRequest'});
-    // print('Response status: ${response.statusCode}');
-    // print('Response body: ${response.body}');
-    var document = parse(response.body);
-    var figureList = document.getElementsByTagName("figure");
-    for (var element in figureList) {
-      var img = element.querySelector('img');
-      var imageList = <Image>[];
-      var href = element.querySelector('.preview');
-      var size = element.querySelector('.wall-res');
-      var obj = Image();
-      img?.attributes.forEach((key, value) {
-          if(key == "data-src"){
-            obj.src = value;
-          }
-      });
-      href?.attributes.forEach((key, value) {
-        if(key == "href"){
-          obj.href = value;
-        }
-      });
-      // obj.size = size?.children[0].toString()!;
-      imageList.add(obj);
-      print(obj);
-    }
-    print(document.outerHtml);
+  void getImage() {
+    print(_imageList.length);
+    if (_loading) return;
+    //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
+    var params = {
+      'categories': '010',
+      'purity': '110',
+      'topRange': '1M',
+      'sorting': 'toplist',
+      'order': 'desc',
+      'page': _pageNum.toString(),
+    };
+    var url = Uri.https('wallhaven.cc', 'search', params);
+    setState(() {
+      _pageNum++;
+      _loading = true;
+    });
+    http
+        .get(url, headers: {'x-requested-with': 'XMLHttpRequest'})
+        .then((response) => {
+              print(response.body),
+              setState(() {
+                _loading = false;
+                var document = parse(response.body);
+                var figureList = document.getElementsByTagName("figure");
+                var list = _imageList;
+                var dataList = _imageDataList;
+                for (var element in figureList) {
+                  var img = element.querySelector('img');
+                  var href = element.querySelector('.preview');
+                  var size = element.querySelector('.wall-res');
+                  var obj = WallImage();
+                  img?.attributes.forEach((key, value) {
+                    if (key == "data-src") {
+                      obj.src = value;
+                    }
+                  });
+                  href?.attributes.forEach((key, value) {
+                    if (key == "href") {
+                      obj.href = value;
+                    }
+                  });
+                  obj.size = (size?.innerHtml).toString();
+                  List sizes = obj.size.split(' x ');
+
+                  if (sizes.isNotEmpty) {
+                    double maxWidth = MediaQuery.of(context).size.width * 0.48;
+                    double rWidth = double.parse(sizes[0]);
+                    double rHeight = double.parse(sizes[1]);
+                    //    100     100     1
+                    double pr =  rWidth / rHeight;
+                    double pWidth = rWidth / 11.68;
+                    double pHeight = rHeight / 11.68;
+                    if(pWidth > maxWidth){
+                      pWidth = maxWidth;
+                      pHeight = maxWidth / pr;
+                    }
+                    //   w1   h1
+                    //   45   45 / pr
+                    // height = height * pr;
+                    list.add(SizedBox(
+                      height: pHeight,
+                      width: pWidth,
+                      child:Image.network(
+                        obj.src,
+                        fit:BoxFit.cover,
+                        // width:double.infinity,
+                        // height:double.infinity,
+                      ),
+                    ));
+                  } else {
+                    list.add(Image.network(obj.src, fit: BoxFit.fitHeight));
+                  }
+                  dataList.add(obj);
+                }
+                _imageList = list;
+                _imageDataList = dataList;
+              })
+            })
+        .catchError((error) => {debugPrint(error.toString())});
   }
 
   @override
@@ -116,42 +163,54 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    // getImage();
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          // var cur = scrollInfo.metrics.pixels;
+          // var max = scrollInfo.metrics.maxScrollExtent;
+          // print("$cur $max");
+          if (scrollInfo.metrics.pixels >=
+              scrollInfo.metrics.maxScrollExtent - 400) {
+            getImage();
+            // print(scrollInfo.metrics.pixels);
+            return true;
+          }
+          return false;
+        },
+        child:MasonryGridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 4,
+          crossAxisSpacing: 4,
+          itemBuilder: (context, index) {
+            return _imageList.isNotEmpty ? _imageList[index] : const Text("");
+          },
         ),
+        // child:Container(
+        //   width:194,
+        //   height:300,
+        //   decoration: BoxDecoration(
+        //     border:Border.all(width:1,color:Colors.grey)
+        //   ),
+        //   child:Image.network("https://th.wallhaven.cc/orig/72/72yvov.jpg",fit:BoxFit.cover),
+        //   //2267 x 3507
+        // )
       ),
+      // body: Center(
+      //   // Center is a layout widget. It takes a single child and positions it
+      //   // in the middle of the parent.
+      //   child: ListView.builder(
+      //     itemCount: _imageList.length,
+      //     itemBuilder: (BuildContext context, int index) {
+      //       return _imageList[index];
+      //     },
+      //   ),
+      // ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
