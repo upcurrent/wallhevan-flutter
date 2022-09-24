@@ -1,3 +1,5 @@
+
+// ignore_for_file: file_names
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -5,7 +7,6 @@ import 'package:shimmer_animation/shimmer_animation.dart';
 import 'main.dart' show WallImage;
 
 class PictureComp extends StatelessWidget{
-
   final double? pHeight;
   final double? halfWidth;
   final WallImage image;
@@ -19,17 +20,21 @@ class PictureComp extends StatelessWidget{
         width: halfWidth,
         padding: const EdgeInsets.all(2),
         child: ExtendedImage.network(
-          image.src,
-          fit: BoxFit.scaleDown,
+          type == WallImage.fullSizePicture ? image.src : image.pSrc,
+          fit: type == WallImage.fullSizePicture ? BoxFit.scaleDown : BoxFit.fitWidth,
           cache: true,
           loadStateChanged: (ExtendedImageState state){
             switch(state.extendedImageLoadState){
               case LoadState.loading:
+                if(type == WallImage.fullSizePicture){
+                  // double halfWidth = MediaQuery.of(context).size.width;
+                  return ExtendedImage.network(image.pSrc,width: double.infinity,fit: BoxFit.fitWidth,);
+                }
                 return Shimmer(
                   duration: const Duration(seconds: 2), //Default value
-                  color: const Color.fromRGBO(212, 212, 212,1), //Default value
+                  color: const Color.fromRGBO(112, 142, 122,1), //Default value
                   enabled: true, //Default value
-                  direction: const ShimmerDirection.fromLTRB(),  //Default Value
+                  direction: const ShimmerDirection.fromLeftToRight(),  //Default Value
                   child: Container(
                     color: const Color.fromRGBO(230, 230, 230,1),
                   ),
@@ -40,8 +45,8 @@ class PictureComp extends StatelessWidget{
                 return null;
             }
           },
-          mode: type == 1 ? ExtendedImageMode.none : ExtendedImageMode.gesture,
-          initGestureConfigHandler: type == 1 ? null : (state) {
+          mode: type == WallImage.previewPicture ? ExtendedImageMode.none : ExtendedImageMode.gesture,
+          initGestureConfigHandler: type == WallImage.previewPicture ? null : (state) {
             return GestureConfig(
               minScale: 0.9,
               animationMinScale: 0.7,
