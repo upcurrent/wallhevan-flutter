@@ -1,4 +1,4 @@
-package com.example.wallhevan;
+package com.aftershock.wallhevan;
 
 import io.flutter.embedding.android.FlutterActivity;
 
