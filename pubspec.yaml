@@ -43,6 +43,12 @@ dependencies:
   shimmer_animation: ^2.1.0+1
   redux: ^5.0.0
   flutter_redux: ^0.10.0
+  dio: ^4.0.6
+  shared_preferences: ^2.0.15
+  dio_cookie_manager: ^2.0.0
+  cookie_jar: ^3.0.1
+  path_provider: ^2.0.11
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
