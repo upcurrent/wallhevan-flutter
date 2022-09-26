@@ -12,8 +12,9 @@ class HCookieManager extends CookieManager{
     cookieJar.loadForRequest(options.uri).then((cookies) {
       var cookie = getCookies(cookies);
       if (cookie.isNotEmpty) {
-        print(options.uri);
-        print(cookie);
+        List<String> cs = [];
+        cs.addAll(cookies.map((e) => e.name));
+        print('request ${options.uri} ${cs.toString()}');
         options.headers[HttpHeaders.cookieHeader] = cookie;
       }
       handler.next(options);
@@ -59,12 +60,20 @@ class HCookieManager extends CookieManager{
   Future<void> _saveCookies(Response response) async {
     var cookies = response.headers[HttpHeaders.setCookieHeader];
     if (cookies != null) {
-      print(cookies);
       List<Cookie> list = cookies.map((str) => Cookie.fromSetCookieValue(str.split(';')[0])).toList();
-      List<String> cookieStr = [];
       final prefs = await SharedPreferences.getInstance();
+      List<String> cs = [];
+      List<String> cookieStr = [];
+      cs.addAll(cookies.map((e) => e.split('=')[0]));
+      print('response ${response.requestOptions.uri} ${cs.toString()}');
       cookieStr.addAll(list.map((e) => e.toString()));
-      prefs.setStringList('cookie', cookieStr);
+      for(Cookie cookie in list){
+        String name = cookie.name;
+        if(name.contains('remember_web')){
+          name = 'remember_web';
+        }
+        prefs.setString(name,cookie.toString());
+      }
       await cookieJar.saveFromResponse(
         response.requestOptions.uri,
         list,

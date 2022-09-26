@@ -34,12 +34,13 @@ class PictureViews extends StatelessWidget {
             //   rebuildSwiper.add(_showSwiper);
             // }
           },
-          child: StoreConnector<MainState, MainState>(
+          child: StoreConnector<MainState, HandleActions>(
               // onWillChange: _onReduxChange,
               // onInitialBuild: _afterBuild,
               distinct: true,
-              converter: (store) => store.state,
-              builder: (context, mainState) {
+              converter: (store) => HandleActions(store),
+              builder: (context, hAction) {
+                MainState mainState = hAction.getMainState();
                 return ExtendedImageGesturePageView.builder(
                   itemBuilder: (BuildContext context, int index) {
                     var item = mainState.imageDataList[index].src;
@@ -59,10 +60,11 @@ class PictureViews extends StatelessWidget {
                     }
                   },
                   itemCount: mainState.imageDataList.length,
-                  // onPageChanged: (int index) {
-                  //   currentIndex = index;
-                  //   // rebuild.add(index);
-                  // },
+                  onPageChanged: (int index) {
+                     if(index >= mainState.imageDataList.length - 2){
+                       hAction.loadMore();
+                     }
+                  },
                   controller: ExtendedPageController(
                     initialPage: mainState.currentIndex,
                   ),
