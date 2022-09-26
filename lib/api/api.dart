@@ -45,17 +45,30 @@ class Api {
   //   dio.interceptors.add(CookieManager(Api.cookieJar));
   // }
 }
-Future<void> initDio() async {
+Future<Dio> initDio() async {
 
   final prefs = await SharedPreferences.getInstance();
-  List<String>? cookieStr = prefs.getStringList('cookie');
-
-  if(cookieStr!=null){
+  List<String> cookieStr = [];
+  List<String> cookieKeys = ['XSRF-TOKEN', 'wallhaven_session','remember_web'];
+  // cookieStr.addAll(cookieKeys.map((key) => prefs.getString(key)));
+  for (String key in cookieKeys) {
+    String? cookie = prefs.getString(key);
+    if(cookie != null){
+      cookieStr.add(cookie);
+    }
+  }
+  if(cookieStr.isNotEmpty){
     List<Cookie> cookieList = cookieStr.map((str) => Cookie.fromSetCookieValue(str)).toList();
     Api.cookieJar.saveFromResponse(Uri.parse(Api.url), cookieList);
   }
-
+  // Api.cookieJar.loadForRequest(Uri.parse('https://wallhaven.cc/auth/login')).then((cookies) {
+  //   if (cookies.isNotEmpty) {
+  //     List<String> cs = [];
+  //     cs.addAll(cookies.map((e) => e.name));
+  //     print('prefs  ${cs.toString()}');
+  //   }
+  // });
   dio.interceptors.add(HCookieManager(Api.cookieJar));
-
+  return dio;
 }
 
