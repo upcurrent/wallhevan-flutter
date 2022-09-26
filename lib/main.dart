@@ -6,12 +6,16 @@ import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:redux/redux.dart';
-import 'package:wallhevan/pictureViews.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wallhevan/component/picture_comp.dart';
+import 'package:wallhevan/pages/favorites.dart';
+import 'package:wallhevan/pages/search.dart';
+import 'package:wallhevan/picture_views.dart';
 import 'package:wallhevan/store/index.dart';
-import './picture.dart';
+import 'component/picture.dart';
 import 'Account/account.dart';
 import 'Account/login.dart';
-import 'api.dart';
+import 'api/api.dart';
 
 
 void main() {
@@ -54,7 +58,7 @@ class MyApp extends StatelessWidget {
               // is not restarted.
               primarySwatch: Colors.blue,
             ),
-            initialRoute: '/login',
+            initialRoute: '/',
             routes: {
               '/picture': (context) => const Picture(),
               '/pictureViews': (context) => const PictureViews(),
@@ -75,17 +79,26 @@ class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.store});
 
   final Store<MainState> store;
-  void _onItemTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushNamed(context, '/');
-        break;
-      case 1:
+  void _onItemTapped(BuildContext context, int index) async {
+    // switch (index) {
+    //   case 0:
+    //     Navigator.pushNamed(context, '/');
+    //     break;
+    //   case 1:
+    //     Navigator.pushNamed(context, '/login');
+    //     break;
+    //   case 2:
+    //     Navigator.pushNamed(context, '/account');
+    //     break;
+    // }
+    // if(store.state.account.token)
+    if(index == 2 || index == 3){
+      final prefs = await SharedPreferences.getInstance();
+      List<String>? cookieStr = prefs.getStringList('cookie');
+      if(cookieStr == null || cookieStr.every((str) => !str.contains('remember_web'))){
         Navigator.pushNamed(context, '/login');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/account');
-        break;
+        return;
+      }
     }
     store.dispatch({'type': StoreActions.selectBottomNav, 'data': index});
   }
@@ -99,42 +112,47 @@ class MyHomePage extends StatelessWidget {
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.home),
-                label: 'Home',
+                label: '首页',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.business),
-                label: 'Business',
+                icon: Icon(Icons.search),
+                label: '搜索',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.school),
-                label: 'School',
+                icon: Icon(Icons.star),
+                label: '收藏',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_circle),
+                label: '我的',
               ),
             ],
+            type: BottomNavigationBarType.fixed,
             currentIndex: store.state.bottomNavIndex,
-            selectedItemColor: Colors.amber[800],
+            selectedItemColor: Colors.pinkAccent[100],
             onTap: (index) => _onItemTapped(context, index),
           ),
-          body: StoreConnector<MainState, MainState>(
+          body: [StoreConnector<MainState, MainState>(
               // onWillChange: _onReduxChange,
               // onInitialBuild: _afterBuild,
               distinct: true,
               converter: (store) => store.state,
               onInit: (store) => store
-                  .dispatch({'type': StoreActions.init, 'context': context}),
+                  .dispatch({'type': StoreActions.init}),
               builder: (context, mainState) {
                 return NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
                     if (scrollInfo.metrics.pixels >=
                         scrollInfo.metrics.maxScrollExtent - 400) {
                       store.dispatch(
-                          {'type': StoreActions.init, 'context': context});
+                          {'type': StoreActions.loadMore});
                       return true;
                     }
                     return false;
                   },
                   child: MasonryGridView.count(
                     crossAxisCount: 2,
-                    itemCount: mainState.imageList.length,
+                    itemCount: mainState.imageDataList.length,
                     itemBuilder: (context, index) {
                       // return mainState.imageList[index];
                       return GestureDetector(
@@ -145,31 +163,29 @@ class MyHomePage extends StatelessWidget {
                                 }),
                                 Navigator.pushNamed(context, '/pictureViews'),
                               },
-                          child: mainState.imageList[index]);
+                          child:PictureComp.create(context, mainState.imageDataList[index]));
                     },
                   ),
                 );
-              })),
+              }),const SearchPage(),const FavoritesPage(),const Account()][store.state.bottomNavIndex]),
     );
     // });
   }
 }
+
+
 
 class WallImage {
   static const int previewPicture = 1;
   static const int fullSizePicture = 2;
   String src = '';
   String pSrc = '';
-  Map size = {
-    'width': 0,
-    'height': 0,
-    'pWidth': 0,
-    'pHeight': 0,
-  };
+  double width = 0;
+  double height = 0;
   WallImage(this.src);
   String href = '';
   @override
   String toString() {
-    return "src:$src pSrc:$pSrc size:$size href:$href";
+    return "src:$src pSrc:$pSrc width:$width height:$height href:$href";
   }
 }

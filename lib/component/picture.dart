@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wallhevan/main.dart' show WallImage;
-import 'package:wallhevan/pictureComp.dart';
+import 'package:wallhevan/component/picture_comp.dart';
 
 class Picture extends StatelessWidget {
   const Picture({super.key});

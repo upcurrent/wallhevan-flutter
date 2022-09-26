@@ -4,7 +4,7 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
-import 'main.dart' show WallImage;
+import '../main.dart' show WallImage;
 
 class PictureComp extends StatelessWidget{
   final double? pHeight;
@@ -12,6 +12,17 @@ class PictureComp extends StatelessWidget{
   final WallImage image;
   final int type;
   const PictureComp({super.key, required this.image,this.pHeight,this.halfWidth,required this.type});
+
+  factory PictureComp.create(BuildContext context,WallImage image){
+    double width = MediaQuery.of(context).size.width / 2;
+    double height = image.height / (image.width / width);
+    return PictureComp(
+      pHeight: height,
+      halfWidth: width,
+        image: image,
+        type: WallImage.previewPicture);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
