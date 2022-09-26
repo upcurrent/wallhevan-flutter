@@ -1,11 +1,11 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:html/parser.dart' show parse;
-import 'package:wallhevan/api.dart';
+import 'package:wallhevan/api/api.dart';
 import '../main.dart' show WallImage;
-import 'package:wallhevan/pictureComp.dart';
-
 
 enum StoreActions {
   addAllWallImage,
@@ -15,6 +15,7 @@ enum StoreActions {
   changeIndex,
   loading,
   init,
+  loadMore,
   preview,
   selectBottomNav,
   accountChange,
@@ -23,9 +24,15 @@ enum StoreActions {
 MainState counterReducer(MainState state, dynamic action) {
   switch (action['type']) {
     case StoreActions.addAllWallImage:
+      if (state.pageNum == 2) {
+        state.imageDataList.clear();
+      }
       state.imageDataList.addAll(action['data']);
       break;
     case StoreActions.addAllWidget:
+      if (state.pageNum == 2) {
+        state.imageList.clear();
+      }
       state.imageList.addAll(action['data']);
       break;
     case StoreActions.addWallImage:
@@ -40,6 +47,7 @@ MainState counterReducer(MainState state, dynamic action) {
     case StoreActions.loading:
       state.loading = !state.loading;
       break;
+    case StoreActions.loadMore:
     case StoreActions.init:
       // getImage(action['context'], state);
       break;
@@ -60,7 +68,12 @@ MainState counterReducer(MainState state, dynamic action) {
 void fetchContactorMiddleware(
     Store<MainState> store, action, NextDispatcher next) {
   if (action['type'] == StoreActions.init) {
-    getImage(store, action['context']);
+    store.state.pageNum = 1;
+    getImage(store);
+  }
+  if (action['type'] == StoreActions.loadMore) {
+    store.state.pageNum++;
+    getImage(store);
   }
   next(action);
 }
@@ -121,7 +134,7 @@ class HandleActions {
   }
 
   void getToken() {
-    if (loading || store.state.account.token.isNotEmpty) return;
+    if (loading) return;
     loading = true;
     Map<String, String> header = {};
     // if(store.state.cookie.isNotEmpty){
@@ -134,6 +147,8 @@ class HandleActions {
       // Api.cookieJar.loadForRequest(uri)
       // CookieManager.
       // Api.getSetCookie(response: response);
+      // print('login cookie');
+      // print( response.headers.map['set-cookie']);
       var body = parse(response.data);
       var input = body.querySelector('[name="_token"]');
       var token = input?.attributes['value'];
@@ -143,17 +158,24 @@ class HandleActions {
 
   void login() {
     UserAccount account = store.state.account;
-    dio.post('/auth/login', data: {
-      '_token': account.token,
-      'username': account.username,
-      'password': account.password,
-    }).then((response) {
-      Api.getSetCookie(response: response);
+    dio
+        .post('/auth/login',
+            data: {
+              '_token': account.token,
+              'username': account.username,
+              'password': account.password,
+            },
+            options: Options(
+                followRedirects: false,
+                validateStatus: (status) {
+                  return status! < 500;
+                }))
+        .then((response) {
+      // Api.getSetCookie(response: response);
       // print(response.headers['set-cookie']);
-    },onError: (error){
-      debugPrint(error);
-    }
-    );
+    }, onError: (error) {
+      print(error);
+    });
   }
 }
 
@@ -161,7 +183,7 @@ class UserAccount {
   String username = 'ikism';
   String password = 'qpwoeiruty-1234';
   String token = '';
-
+  String cookieStr = '';
   @override
   String toString() {
     return 'UserAccount{userName: $username, password: $password, token: $token}';
@@ -171,19 +193,18 @@ class UserAccount {
 
 }
 
-void getImage(Store<MainState> store, BuildContext context) {
+void getImage(Store<MainState> store) {
   if (store.state.loading) return;
   //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
   //https://wallhaven.cc/search?categories=010&purity=001&sorting=hot&order=desc
   var params = {
     'categories': '010',
-    'purity': '001',
+    'purity': '110',
     'topRange': '1M',
     'sorting': 'toplist',
     'order': 'desc',
     'page': store.state.pageNum.toString(),
   };
-  store.state.pageNum++;
   store.state.loading = true;
   dio
       .get('/search',
@@ -198,7 +219,7 @@ void getImage(Store<MainState> store, BuildContext context) {
     var figureList = document.getElementsByTagName("figure");
     List<Widget> list = [];
     List<WallImage> dataList = [];
-    double halfWidth = MediaQuery.of(context).size.width / 2;
+    // double halfWidth = MediaQuery.of(context).size.width / 2;
     for (var element in figureList) {
       var img = element.querySelector('img');
       var href = element.querySelector('.preview');
@@ -221,13 +242,9 @@ void getImage(Store<MainState> store, BuildContext context) {
       if (sizes.isNotEmpty) {
         double rWidth = double.parse(sizes[0]);
         double rHeight = double.parse(sizes[1]);
-        double pHeight = rHeight / (rWidth / halfWidth);
-        obj.size = {
-          'pWidth': halfWidth,
-          'pHeight': pHeight,
-          'width': rWidth,
-          'height': rHeight
-        };
+        // double pHeight = rHeight / (rWidth / halfWidth);
+        obj.width = rWidth;
+        obj.height = rHeight;
         List<String> fullSrc = obj.pSrc
             .replaceAll('/th.wallhaven.cc/orig/', '/w.wallhaven.cc/full/')
             .split('/');
@@ -240,13 +257,13 @@ void getImage(Store<MainState> store, BuildContext context) {
         obj.src = fullSrc.join('/');
         // obj.pSrc = obj.src; // TODO be remove
         // debugPrint(obj.toString());
-        list.add(PictureComp(
-            pHeight: pHeight,
-            halfWidth: halfWidth,
-            image: obj,
-            type: WallImage.previewPicture));
-      } else {
-        list.add(Image.network(obj.pSrc, fit: BoxFit.scaleDown));
+        // list.add(PictureComp(
+        //     // pHeight: pHeight,
+        //     // halfWidth: halfWidth,
+        //     image: obj,
+        //     type: WallImage.previewPicture));
+        // } else {
+        //   list.add(Image.network(obj.pSrc, fit: BoxFit.scaleDown));
       }
       // print(obj);
       dataList.add(obj);

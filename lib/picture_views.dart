@@ -2,7 +2,7 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/main.dart' show WallImage;
-import 'package:wallhevan/pictureComp.dart';
+import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/store/index.dart';
 
 class PictureViews extends StatelessWidget {
@@ -58,7 +58,7 @@ class PictureViews extends StatelessWidget {
                       return image;
                     }
                   },
-                  itemCount: mainState.imageList.length,
+                  itemCount: mainState.imageDataList.length,
                   // onPageChanged: (int index) {
                   //   currentIndex = index;
                   //   // rebuild.add(index);
