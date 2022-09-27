@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:html/parser.dart' show parse;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
 import '../main.dart' show WallImage;
 
@@ -98,6 +99,7 @@ class MainState {
   void addPictureWidget(Widget widget) {
     imageList.add(widget);
   }
+
 }
 
 class HandleActions {
@@ -133,31 +135,33 @@ class HandleActions {
     store.dispatch({'type':StoreActions.loadMore});
   }
 
-  void getToken() {
-    if (loading) return;
+  Future<String> getToken(String url) async {
     loading = true;
     Map<String, String> header = {};
-    // if(store.state.cookie.isNotEmpty){
-    //   header =  {
-    //     'cookie':store.state.cookie
-    //   };
-    // }
-    dio.get('/login', options: Options(headers: header)).then((response) {
-      loading = false;
-      // Api.cookieJar.loadForRequest(uri)
-      // CookieManager.
-      // Api.getSetCookie(response: response);
-      // print('login cookie');
-      // print( response.headers.map['set-cookie']);
-      var body = parse(response.data);
-      var input = body.querySelector('[name="_token"]');
-      var token = input?.attributes['value'];
-      tokenChanged(token!);
-    });
+    Response response = await dio.get(url, options: Options(headers: header));
+    loading = false;
+    var body = parse(response.data);
+    var input = body.querySelector('[name="_token"]');
+    var token = input?.attributes['value'];
+    if(token != null){
+      tokenChanged(token);
+      return token;
+    }
+    return '';
+  }
+  void initAccount() async{
+    final prefs = await SharedPreferences.getInstance();
+    String? diskUserName = prefs.getString('username');
+    if(diskUserName != null){
+      getToken('/user/$diskUserName');
+      userNameChanged(diskUserName);
+    }
   }
 
   void login() {
+    if (loading) return;
     UserAccount account = store.state.account;
+    loading = true;
     dio
         .post('/auth/login',
             data: {
@@ -170,11 +174,49 @@ class HandleActions {
                 validateStatus: (status) {
                   return status! < 500;
                 }))
-        .then((response) {
-      // Api.getSetCookie(response: response);
-      // print(response.headers['set-cookie']);
-    }, onError: (error) {
-      print(error);
+        .then((response) async {
+      loading = false;
+      // login Success
+      if(response.statusCode == 302){
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('userName', account.username);
+        prefs.setString('password', account.password);
+      }
+    });
+  }
+
+  void logOut() async{
+    if (loading) return;
+    loading = true;
+    UserAccount account = store.state.account;
+    getToken('/user/${account.username}').then((token) async{
+      if(token.isNotEmpty){
+        await dio.post('/auth/logout',data:{'_token':account.token},options: Options(followRedirects: false,validateStatus: (status) {
+          return status! < 500;
+        }));
+        loading = false;
+      }else {
+        loading = false;
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    account.password = '';
+    account.token = '';
+    account.username = '';
+    store.dispatch(
+        {'type': StoreActions.accountChange, 'data': account});
+    await prefs.clear();
+    await Api.cookieJar.delete(Uri.parse(Api.url));
+    dio.interceptors.clear();
+    dio = initDio1(prefs);
+    store.dispatch({'type':StoreActions.selectBottomNav,'data':0});
+    store.dispatch({'type':StoreActions.init});
+  }
+
+  void test(){
+    Api.cookieJar.loadForRequest(Uri.parse(Api.url)).then((cookies) {
+      print('loginAfter');
+      print(cookies);
     });
   }
 }
@@ -183,13 +225,10 @@ class UserAccount {
   String username = 'ikism';
   String password = 'qpwoeiruty-1234';
   String token = '';
-  String cookieStr = '';
   @override
   String toString() {
     return 'UserAccount{userName: $username, password: $password, token: $token}';
   }
-
-// UserAccount(this.userName, this.password, this.token);
 
 }
 
@@ -219,7 +258,6 @@ Future<void> getImage(Store<MainState> store) async {
     store.state.loading = false;
 
     // Api.getSetCookie(response: response);
-
     var document = parse(response.data.replaceAll("/small/", "/orig/"));
     var figureList = document.getElementsByTagName("figure");
     List<Widget> list = [];
