@@ -26,10 +26,12 @@ void main() {
     //https://w.wallhaven.cc/full/x8/wallhevan-x8x7dz.jpg
     //https://w.wallhaven.cc/full/8o/wallhaven-8o25xo.png
     //https://w.wallhaven.cc/full/8o/wallhaven-8o25xo.jpg
-    String src = 'https://th.wallhaven.cc/orig/x8/x8x7dz.jpg';
-    List<String> fullSrc = src.replaceAll('/th.wallhaven.cc/orig/', '/w.wallhaven.cc/full/').split('/');
-    fullSrc[fullSrc.length-1] = "wallhaven-${fullSrc[fullSrc.length-1]}";
-    debugPrint(fullSrc.join('/'));
+    // String src = 'https://th.wallhaven.cc/orig/x8/x8x7dz.jpg';
+    // List<String> fullSrc = src.replaceAll('/th.wallhaven.cc/orig/', '/w.wallhaven.cc/full/').split('/');
+    // fullSrc[fullSrc.length-1] = "wallhaven-${fullSrc[fullSrc.length-1]}";
+    // debugPrint(fullSrc.join('/'));
+    String name = 'remember_web1';
+    print(name.contains('remember_web'));
     // Verify that our counter has incremented.
     // expect(find.text('0'), findsNothing);
     // expect(find.text('1'), findsOneWidget);

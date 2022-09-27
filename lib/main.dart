@@ -15,7 +15,6 @@ import 'package:wallhevan/store/index.dart';
 import 'component/picture.dart';
 import 'Account/account.dart';
 import 'Account/login.dart';
-import 'api/api.dart';
 
 
 void main() {
@@ -23,7 +22,6 @@ void main() {
     SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
   }
-
   Store<MainState> store = Store<MainState>(
     counterReducer,
     initialState: MainState.initState(),
@@ -67,7 +65,6 @@ class MyApp extends StatelessWidget {
             },
             home: StoreBuilder<MainState>(
               onInit: (store) {
-                initDio();
               },
               builder: (BuildContext context, Store<MainState> store) =>
                   MyHomePage(store: store),
@@ -94,8 +91,9 @@ class MyHomePage extends StatelessWidget {
     // if(store.state.account.token)
     if(index == 2 || index == 3){
       final prefs = await SharedPreferences.getInstance();
-      List<String>? cookieStr = prefs.getStringList('cookie');
-      if(cookieStr == null || cookieStr.every((str) => !str.contains('remember_web'))){
+      String? rememberCookie = prefs.getString('remember_web');
+      if(rememberCookie == null){
+        // ignore: use_build_context_synchronously
         Navigator.pushNamed(context, '/login');
         return;
       }
@@ -132,15 +130,16 @@ class MyHomePage extends StatelessWidget {
             selectedItemColor: Colors.pinkAccent[100],
             onTap: (index) => _onItemTapped(context, index),
           ),
-          body: [StoreConnector<MainState, MainState>(
+          body: StoreConnector<MainState, HandleActions>(
               // onWillChange: _onReduxChange,
               // onInitialBuild: _afterBuild,
               distinct: true,
-              converter: (store) => store.state,
+              converter: (store) => HandleActions(store),
               onInit: (store) => store
                   .dispatch({'type': StoreActions.init}),
-              builder: (context, mainState) {
-                return NotificationListener<ScrollNotification>(
+              builder: (context, hAction) {
+                MainState mainState = hAction.getMainState();
+                return [NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
                     if (scrollInfo.metrics.pixels >=
                         scrollInfo.metrics.maxScrollExtent - 400) {
@@ -166,8 +165,8 @@ class MyHomePage extends StatelessWidget {
                           child:PictureComp.create(context, mainState.imageDataList[index]));
                     },
                   ),
-                );
-              }),const SearchPage(),const FavoritesPage(),const Account()][store.state.bottomNavIndex]),
+                ),const SearchPage(),const FavoritesPage(),const Account()][mainState.bottomNavIndex];
+              })),
     );
     // });
   }

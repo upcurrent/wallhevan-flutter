@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -72,7 +70,6 @@ void fetchContactorMiddleware(
     getImage(store);
   }
   if (action['type'] == StoreActions.loadMore) {
-    store.state.pageNum++;
     getImage(store);
   }
   next(action);
@@ -88,6 +85,7 @@ class MainState {
   int bottomNavIndex;
   UserAccount account = UserAccount();
   String cookie = '';
+  bool dioReady = false;
   MainState(this.imageList, this.imageDataList, this.preview, this.loading,
       this.pageNum, this.currentIndex, this.bottomNavIndex);
 
@@ -109,6 +107,10 @@ class HandleActions {
 
   bool loading = false;
 
+  MainState getMainState(){
+    return store.state;
+  }
+
   void userNameChanged(String userName) {
     store.state.account.username = userName;
     store.dispatch(
@@ -127,10 +129,8 @@ class HandleActions {
         {'type': StoreActions.accountChange, 'data': store.state.account});
   }
 
-  void setCookie(String cookie) {
-    // cookie.split(';')
-    // var dc = Cookie();
-    // dio.interceptors.add(cookie);
+  void loadMore() {
+    store.dispatch({'type':StoreActions.loadMore});
   }
 
   void getToken() {
@@ -193,7 +193,7 @@ class UserAccount {
 
 }
 
-void getImage(Store<MainState> store) {
+Future<void> getImage(Store<MainState> store) async {
   if (store.state.loading) return;
   //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
   //https://wallhaven.cc/search?categories=010&purity=001&sorting=hot&order=desc
@@ -206,6 +206,11 @@ void getImage(Store<MainState> store) {
     'page': store.state.pageNum.toString(),
   };
   store.state.loading = true;
+  store.state.pageNum++;
+  if(!store.state.dioReady){
+    dio = await initDio();
+    store.state.dioReady = true;
+  }
   dio
       .get('/search',
           queryParameters: params,
