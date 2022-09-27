@@ -5,11 +5,13 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api.dart';
+
 class HCookieManager extends CookieManager{
   HCookieManager(super.cookieJar);
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    cookieJar.loadForRequest(options.uri).then((cookies) {
+    cookieJar.loadForRequest(Uri.parse(Api.url)).then((cookies) {
       var cookie = getCookies(cookies);
       if (cookie.isNotEmpty) {
         List<String> cs = [];
@@ -60,6 +62,7 @@ class HCookieManager extends CookieManager{
   Future<void> _saveCookies(Response response) async {
     var cookies = response.headers[HttpHeaders.setCookieHeader];
     if (cookies != null) {
+      // cookies.map((str) => Cookie.fromSetCookieValue(str)).toList()
       List<Cookie> list = cookies.map((str) => Cookie.fromSetCookieValue(str.split(';')[0])).toList();
       final prefs = await SharedPreferences.getInstance();
       List<String> cs = [];
@@ -75,7 +78,7 @@ class HCookieManager extends CookieManager{
         prefs.setString(name,cookie.toString());
       }
       await cookieJar.saveFromResponse(
-        response.requestOptions.uri,
+        Uri.parse(Api.url),
         list,
       );
     }

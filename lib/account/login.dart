@@ -14,8 +14,7 @@ class Login extends StatelessWidget {
             child: StoreConnector<MainState, HandleActions>(
                 // onWillChange: _onReduxChange,
                 onInitialBuild: (hAction){
-                  print(1111111111111);
-                  hAction.getToken();
+                  hAction.getToken('/login');
                 },
                 distinct: true,
                 converter: (store){

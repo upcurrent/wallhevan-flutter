@@ -10,7 +10,7 @@ import 'cookie.dart';
 Dio dio = Dio(BaseOptions(baseUrl: Api.url));
 
 class Api {
-  static String url = 'https://wallhaven.cc/';
+  static String url = 'https://wallhaven.cc';
 
   static String? _cookiePath;
   static Future<String> get cookiePath async {
@@ -45,9 +45,17 @@ class Api {
   //   dio.interceptors.add(CookieManager(Api.cookieJar));
   // }
 }
-Future<Dio> initDio() async {
-
+Future<Dio> initDio() async{
   final prefs = await SharedPreferences.getInstance();
+  return initDio0(prefs);
+}
+
+Dio initDio1(SharedPreferences prefs){
+  return initDio0(prefs);
+}
+
+Dio initDio0(SharedPreferences prefs) {
+
   List<String> cookieStr = [];
   List<String> cookieKeys = ['XSRF-TOKEN', 'wallhaven_session','remember_web'];
   // cookieStr.addAll(cookieKeys.map((key) => prefs.getString(key)));
