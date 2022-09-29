@@ -18,6 +18,7 @@ enum StoreActions {
   preview,
   selectBottomNav,
   accountChange,
+  searchChange
 }
 
 MainState counterReducer(MainState state, dynamic action) {
@@ -60,6 +61,9 @@ MainState counterReducer(MainState state, dynamic action) {
     case StoreActions.accountChange:
       state.account = action['data'];
       break;
+    case StoreActions.searchChange:
+      // state.params = action['data'];
+      break;
   }
   return state;
 }
@@ -79,12 +83,14 @@ void fetchContactorMiddleware(
 class MainState {
   final List<Widget> imageList;
   final List<WallImage> imageDataList;
+
   bool preview;
   bool loading;
   int pageNum;
   int currentIndex;
-  int bottomNavIndex;
+  int bottomNavIndex = 2;
   UserAccount account = UserAccount();
+  SearchParams search = SearchParams();
   String cookie = '';
   bool dioReady = false;
   MainState(this.imageList, this.imageDataList, this.preview, this.loading,
@@ -101,6 +107,53 @@ class MainState {
   }
 
 }
+
+class SearchParams {
+  String categories = '010';
+  String purity = '110';
+  String topRange = '1M';
+  String sorting = 'toplist';
+  String order = 'desc';
+  final  Map<String, String> params = {
+    'categories': '010',
+    'purity': '110',
+    'topRange': '1M',
+    'sorting': 'toplist',
+    'order': 'desc',
+    'page': '1',
+  };
+  final Map<String,String> categoriesMap = {
+    'General':'1',
+    'Anime':'0',
+    'People':'0',
+  };
+  final Map<String,String> sortingMap = {
+    'TopList':'toplist',
+    'Hot':'hot',
+    'Random':'random',
+    'Latest':'date_added',
+    'Views':'views',
+    'Favorites':'favorites',
+    'Relevance':'relevance',
+  };
+  final Map<String,String> purityMap = {
+    'SFW':'1',
+    'Sketchy':'0',
+    'NSFW':'0',
+  };
+  final List<String> topRangeMap = ['1d', '3d',' 1w','1M', '3M', '6M','1y'];
+  Map<String, String> getParams(int pageNum){
+    return {
+      'categories': categories,
+      'purity': purity,
+      'topRange': topRange,
+      'sorting': sorting,
+      'order': order,
+      'page': pageNum.toString(),
+    };
+  }
+}
+
 
 class HandleActions {
   Store<MainState> store;
@@ -129,6 +182,11 @@ class HandleActions {
     store.state.account.token = token;
     store.dispatch(
         {'type': StoreActions.accountChange, 'data': store.state.account});
+  }
+
+  void setParams(String key,String value) {
+    store.state.search.params[key] = value;
+    store.dispatch({'type': StoreActions.searchChange});
   }
 
   void loadMore() {
@@ -239,52 +297,13 @@ enum SearchType{
   latest
 }
 
-class SearchParams {
-  String categories = '010';
-  String purity = '110';
-  String topRange = '1M';
-  String sorting = 'toplist';
-  String order = 'desc';
-
-  final Map<String,String> sortingMap = {
-    'TopList':'toplist',
-    'Hot':'hot',
-    'Random':'random',
-    'Latest':'date_added',
-    'Views':'views',
-    'Favorites':'favorites',
-    'Relevance':'relevance',
-  };
-  final Map<String,String> categoriesMap = {
-    'General':'1',
-    'Anime':'0',
-    'People':'0',
-  };
-  final Map<String,String> purityMap = {
-    'SFW':'1',
-    'Sketchy':'0',
-    'NSFW':'0',
-  };
-  final List<String> topRangeMap = ['1d', '3d',' 1w','1M', '3M', '6M','1y'];
-  Map<String, String> getParams(int pageNum){
-    return {
-      'categories': categories,
-      'purity': purity,
-      'topRange': topRange,
-      'sorting': sorting,
-      'order': order,
-      'page': pageNum.toString(),
-    };
-  }
-}
 
 Future<void> getImage(Store<MainState> store) async {
   if (store.state.loading) return;
   //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
   //https://wallhaven.cc/search?categories=010&purity=001&sorting=hot&order=desc
-  SearchParams search = SearchParams();
-
-  var params = search.getParams(store.state.pageNum);
+  var params = store.state.search.params;
+  params['pageNum'] = store.state.pageNum.toString();
   store.state.loading = true;
   store.state.pageNum++;
   if(!store.state.dioReady){
