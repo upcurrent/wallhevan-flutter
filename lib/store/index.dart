@@ -232,18 +232,59 @@ class UserAccount {
 
 }
 
+enum SearchType{
+  topList,
+  hot,
+  random,
+  latest
+}
+
+class SearchParams {
+  String categories = '010';
+  String purity = '110';
+  String topRange = '1M';
+  String sorting = 'toplist';
+  String order = 'desc';
+
+  final Map<String,String> sortingMap = {
+    'TopList':'toplist',
+    'Hot':'hot',
+    'Random':'random',
+    'Latest':'date_added',
+    'Views':'views',
+    'Favorites':'favorites',
+    'Relevance':'relevance',
+  };
+  final Map<String,String> categoriesMap = {
+    'General':'1',
+    'Anime':'0',
+    'People':'0',
+  };
+  final Map<String,String> purityMap = {
+    'SFW':'1',
+    'Sketchy':'0',
+    'NSFW':'0',
+  };
+  final List<String> topRangeMap = ['1d', '3d',' 1w','1M', '3M', '6M','1y'];
+  Map<String, String> getParams(int pageNum){
+    return {
+      'categories': categories,
+      'purity': purity,
+      'topRange': topRange,
+      'sorting': sorting,
+      'order': order,
+      'page': pageNum.toString(),
+    };
+  }
+}
+
 Future<void> getImage(Store<MainState> store) async {
   if (store.state.loading) return;
   //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
   //https://wallhaven.cc/search?categories=010&purity=001&sorting=hot&order=desc
-  var params = {
-    'categories': '010',
-    'purity': '110',
-    'topRange': '1M',
-    'sorting': 'toplist',
-    'order': 'desc',
-    'page': store.state.pageNum.toString(),
-  };
+  SearchParams search = SearchParams();
+
+  var params = search.getParams(store.state.pageNum);
   store.state.loading = true;
   store.state.pageNum++;
   if(!store.state.dioReady){
