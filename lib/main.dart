@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:intl/intl.dart';
 import 'package:redux/redux.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/component/picture_comp.dart';
@@ -15,6 +17,7 @@ import 'package:wallhevan/store/index.dart';
 import 'component/picture.dart';
 import 'Account/account.dart';
 import 'Account/login.dart';
+import 'generated/l10n.dart';
 
 
 void main() {
@@ -44,6 +47,14 @@ class MyApp extends StatelessWidget {
         store: store,
         child: MaterialApp(
             title: 'Flutter Demo',
+            supportedLocales: S.delegate.supportedLocales,
+            localizationsDelegates: const [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            locale: const Locale('en'),
             theme: ThemeData(
               // This is the theme of your application.
               //
@@ -65,6 +76,7 @@ class MyApp extends StatelessWidget {
             },
             home: StoreBuilder<MainState>(
               onInit: (store) {
+                print(S.current.general);
               },
               builder: (BuildContext context, Store<MainState> store) =>
                   MyHomePage(store: store),
@@ -107,22 +119,22 @@ class MyHomePage extends StatelessWidget {
       constraints: const BoxConstraints.expand(),
       child: Scaffold(
           bottomNavigationBar: BottomNavigationBar(
-            items: const <BottomNavigationBarItem>[
+            items:  <BottomNavigationBarItem>[
               BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: '首页',
+                icon: const Icon(Icons.home),
+                label: S.current.home,
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.search),
-                label: '搜索',
+                icon: const Icon(Icons.search),
+                label: S.current.search,
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.star),
-                label: '收藏',
+                icon: const Icon(Icons.star),
+                label: S.current.favoritesTab,
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle),
-                label: '我的',
+                icon:const  Icon(Icons.account_circle),
+                label: S.current.my,
               ),
             ],
             type: BottomNavigationBarType.fixed,

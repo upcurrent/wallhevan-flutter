@@ -1,0 +1,23 @@
+{
+  "home": "Home",
+  "search": "Search",
+  "favoritesTab":"Favorites",
+  "my": "Mine",
+  "topList":"TopList",
+  "hot":"Hot",
+  "random":"random",
+  "latest":"Latest",
+  "views":"Views",
+  "favorites":"Favorites",
+  "relevance":"Relevance",
+  "general":"General",
+  "anime":"Anime",
+  "people":"People",
+  "t_1d": "Last Day",
+  "t_3d": "Last Three Days",
+  "t_1w": "Last Week",
+  "t_1M": "Last Month",
+  "t_3M": "Last 3 Months ",
+  "t_6M": "Last 6 Months ",
+  "t_1y": "Last Year"
+}
