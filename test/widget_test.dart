@@ -30,7 +30,6 @@ void main() {
     // fullSrc[fullSrc.length-1] = "wallhaven-${fullSrc[fullSrc.length-1]}";
     // debugPrint(fullSrc.join('/'));
     String name = 'remember_web1';
-    print(name.contains('remember_web'));
     // Verify that our counter has incremented.
     // expect(find.text('0'), findsNothing);
     // expect(find.text('1'), findsOneWidget);

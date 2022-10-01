@@ -16,7 +16,6 @@ class HCookieManager extends CookieManager{
       if (cookie.isNotEmpty) {
         List<String> cs = [];
         cs.addAll(cookies.map((e) => e.name));
-        print('request ${options.uri} ${cs.toString()}');
         options.headers[HttpHeaders.cookieHeader] = cookie;
       }
       handler.next(options);
@@ -68,7 +67,7 @@ class HCookieManager extends CookieManager{
       List<String> cs = [];
       List<String> cookieStr = [];
       cs.addAll(cookies.map((e) => e.split('=')[0]));
-      print('response ${response.requestOptions.uri} ${cs.toString()}');
+      // print('response ${response.requestOptions.uri} ${cs.toString()}');
       cookieStr.addAll(list.map((e) => e.toString()));
       for(Cookie cookie in list){
         String name = cookie.name;

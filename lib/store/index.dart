@@ -93,10 +93,16 @@ class MainState {
   SearchParams search = SearchParams();
   String cookie = '';
   bool dioReady = false;
+  final List list = [
+    "Flutter",
+    "React",
+    "Ionic",
+    "Xamarin",
+  ];
   MainState(this.imageList, this.imageDataList, this.preview, this.loading,
       this.pageNum, this.currentIndex, this.bottomNavIndex);
 
-  factory MainState.initState() => MainState([], [], false, false, 1, 0, 0);
+  factory MainState.initState() => MainState([], [], false, false, 1, 0, 1);
 
   void addWallImage(WallImage img) {
     imageDataList.add(img);
@@ -114,6 +120,7 @@ class SearchParams {
   String topRange = '1M';
   String sorting = 'toplist';
   String order = 'desc';
+  String keyword = "";
   final  Map<String, String> params = {
     'categories': '010',
     'purity': '110',
@@ -123,9 +130,9 @@ class SearchParams {
     'page': '1',
   };
   final Map<String,String> categoriesMap = {
-    'General':'1',
-    'Anime':'0',
-    'People':'0',
+    'general':'1',
+    'anime':'0',
+    'people':'0',
   };
   final Map<String,String> sortingMap = {
     'TopList':'toplist',
@@ -142,16 +149,7 @@ class SearchParams {
     'NSFW':'0',
   };
   final List<String> topRangeMap = ['1d', '3d',' 1w','1M', '3M', '6M','1y'];
-  Map<String, String> getParams(int pageNum){
-    return {
-      'categories': categories,
-      'purity': purity,
-      'topRange': topRange,
-      'sorting': sorting,
-      'order': order,
-      'page': pageNum.toString(),
-    };
-  }
+
 }
 
 
@@ -164,6 +162,10 @@ class HandleActions {
 
   MainState getMainState(){
     return store.state;
+  }
+
+  SearchParams getSearch(){
+    return store.state.search;
   }
 
   void userNameChanged(String userName) {
@@ -185,8 +187,24 @@ class HandleActions {
   }
 
   void setParams(String key,String value) {
-    store.state.search.params[key] = value;
+    getSearch().params[key] = value;
     store.dispatch({'type': StoreActions.searchChange});
+  }
+
+  void setCategories(String key){
+    SearchParams search = getSearch();
+    search.categoriesMap[key] = search.categoriesMap[key] == '0' ? '1' : '0';
+    List<String> cateStrs = [];
+    cateStrs.addAll(search.categoriesMap.values);
+    setParams('categories',cateStrs.join(''));
+  }
+
+  void setPurity(String key){
+    SearchParams search = getSearch();
+    search.purityMap[key] = search.purityMap[key] == '0' ? '1' : '0';
+    List<String> purityStrs = [];
+    purityStrs.addAll(search.purityMap.values);
+    setParams('purity',purityStrs.join(''));
   }
 
   void loadMore() {
@@ -271,12 +289,7 @@ class HandleActions {
     store.dispatch({'type':StoreActions.init});
   }
 
-  void test(){
-    Api.cookieJar.loadForRequest(Uri.parse(Api.url)).then((cookies) {
-      print('loginAfter');
-      print(cookies);
-    });
-  }
+
 }
 
 class UserAccount {
@@ -303,7 +316,7 @@ Future<void> getImage(Store<MainState> store) async {
   //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
   //https://wallhaven.cc/search?categories=010&purity=001&sorting=hot&order=desc
   var params = store.state.search.params;
-  params['pageNum'] = store.state.pageNum.toString();
+  params['page'] = store.state.pageNum.toString();
   store.state.loading = true;
   store.state.pageNum++;
   if(!store.state.dioReady){
@@ -374,5 +387,6 @@ Future<void> getImage(Store<MainState> store) async {
     // print(state.im)
     store.dispatch({'type': StoreActions.addAllWidget, 'data': list});
     store.dispatch({'type': StoreActions.addAllWallImage, 'data': dataList});
+  // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }
