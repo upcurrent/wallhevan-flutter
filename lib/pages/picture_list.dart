@@ -5,11 +5,22 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../component/picture_comp.dart';
 import '../store/index.dart';
 
-class PictureList extends StatelessWidget {
+
+class PictureList extends StatefulWidget {
   const PictureList({super.key});
 
   @override
+  State<StatefulWidget> createState() {
+    return _PictureListState();
+  }
+
+}
+
+class _PictureListState extends State<PictureList> with AutomaticKeepAliveClientMixin{
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return StoreConnector<MainState, HandleActions>(
         // onWillChange: _onReduxChange,
         // onInitialBuild: _afterBuild,
@@ -36,20 +47,23 @@ class PictureList extends StatelessWidget {
                   //   index: index,
                   //   extent: (index % 5 + 1) * 100,
                   // );
-                  return PictureComp.create(  context, mainState.imageDataList[index]);
-                  // return GestureDetector(
-                  //     onTap: () => {
-                  //       hAction.store.dispatch({
-                  //         'type': StoreActions.preview,
-                  //         'currentIndex': index
-                  //       }),
-                  //       Navigator.pushNamed(context, '/pictureViews'),
-                  //     },
-                  //     child: PictureComp.create(
-                  //         context, mainState.imageDataList[index]));
+                  // return PictureComp.create(  context, mainState.imageDataList[index]);
+                  return GestureDetector(
+                      onTap: () => {
+                        hAction.store.dispatch({
+                          'type': StoreActions.preview,
+                          'currentIndex': index
+                        }),
+                        Navigator.pushNamed(context, '/pictureViews'),
+                      },
+                      child: PictureComp.create(
+                          context, mainState.imageDataList[index]));
                 },
               ),
           );
         });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
