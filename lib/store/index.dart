@@ -6,7 +6,7 @@ import 'package:html/parser.dart' show parse;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
 import 'package:wallhevan/store/collections/collections.dart';
-import 'package:wallhevan/store/searchResult/SearchResult.dart';
+import 'package:wallhevan/store/searchResult/search_result.dart';
 import '../main.dart' show WallImage;
 import 'searchResult/picture_info.dart';
 
