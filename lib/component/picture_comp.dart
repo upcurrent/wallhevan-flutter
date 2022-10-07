@@ -5,21 +5,32 @@ import 'package:flutter/material.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
 import '../main.dart' show WallImage;
+import '../store/searchResult/picture_info.dart';
 
 class PictureComp extends StatelessWidget{
   final double? pHeight;
   final double? halfWidth;
-  final WallImage image;
+  final PictureInfo image;
   final int type;
   const PictureComp({super.key, required this.image,this.pHeight,this.halfWidth,required this.type});
 
-  factory PictureComp.create(BuildContext context,WallImage image){
+  // factory PictureComp.create(BuildContext context,WallImage image){
+  //   double width = MediaQuery.of(context).size.width / 2;
+  //   double height = image.height / (image.width / width);
+  //   return PictureComp(
+  //     pHeight: height,
+  //     halfWidth: width,
+  //       image: image,
+  //       type: WallImage.previewPicture);
+  // }
+
+  factory PictureComp.create(BuildContext context,PictureInfo picture){
     double width = MediaQuery.of(context).size.width / 2;
-    double height = image.height / (image.width / width);
+    double height = picture.dimensionY / (picture.dimensionX / width);
     return PictureComp(
-      pHeight: height,
-      halfWidth: width,
-        image: image,
+        pHeight: height,
+        halfWidth: width,
+        image: picture,
         type: WallImage.previewPicture);
   }
 
@@ -31,7 +42,7 @@ class PictureComp extends StatelessWidget{
         width: halfWidth,
         padding: const EdgeInsets.all(2),
         child: ExtendedImage.network(
-          type == WallImage.fullSizePicture ? image.src : image.pSrc,
+          type == WallImage.fullSizePicture ? image.path : image.thumbs!.original!,
           fit: type == WallImage.fullSizePicture ? BoxFit.scaleDown : BoxFit.fitWidth,
           cache: true,
           loadStateChanged: (ExtendedImageState state){
@@ -39,7 +50,7 @@ class PictureComp extends StatelessWidget{
               case LoadState.loading:
                 if(type == WallImage.fullSizePicture){
                   // double halfWidth = MediaQuery.of(context).size.width;
-                  return ExtendedImage.network(image.pSrc,width: double.infinity,fit: BoxFit.fitWidth,);
+                  return ExtendedImage.network(image.thumbs!.original!,width: double.infinity,fit: BoxFit.fitWidth,);
                 }
                 return Shimmer(
                   duration: const Duration(seconds: 2), //Default value

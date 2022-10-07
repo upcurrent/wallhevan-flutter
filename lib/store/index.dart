@@ -1,15 +1,20 @@
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
+import 'package:wallhevan/store/collections/collections.dart';
+import 'package:wallhevan/store/searchResult/SearchResult.dart';
 import '../main.dart' show WallImage;
+import 'searchResult/picture_info.dart';
 
 enum StoreActions {
-  addAllWallImage,
+  addAllPictureInfo,
   addAllWidget,
-  addWallImage,
+  addPictureInfo,
+  addFavPictureList,
   addCookie,
   changeIndex,
   loading,
@@ -18,12 +23,14 @@ enum StoreActions {
   preview,
   selectBottomNav,
   accountChange,
-  searchChange
+  searchChange,
+  initFav,
+  favLoadMore,
 }
 
 MainState counterReducer(MainState state, dynamic action) {
   switch (action['type']) {
-    case StoreActions.addAllWallImage:
+    case StoreActions.addAllPictureInfo:
       if (state.pageNum == 2) {
         state.imageDataList.clear();
       }
@@ -35,8 +42,11 @@ MainState counterReducer(MainState state, dynamic action) {
       }
       state.imageList.addAll(action['data']);
       break;
-    case StoreActions.addWallImage:
+    case StoreActions.addPictureInfo:
       state.imageDataList.add(action['data']);
+      break;
+    case StoreActions.addFavPictureList:
+      state.favPictureList.addAll(action['data']);
       break;
     case StoreActions.addCookie:
       state.cookie = (action['data']);
@@ -49,7 +59,7 @@ MainState counterReducer(MainState state, dynamic action) {
       break;
     case StoreActions.loadMore:
     case StoreActions.init:
-      // getImage(action['context'], state);
+      // getPictureList(action['context'], state);
       break;
     case StoreActions.selectBottomNav:
       state.bottomNavIndex = action['data'];
@@ -64,6 +74,8 @@ MainState counterReducer(MainState state, dynamic action) {
     case StoreActions.searchChange:
       // state.params = action['data'];
       break;
+    case StoreActions.initFav:
+      break;
   }
   return state;
 }
@@ -72,21 +84,26 @@ void fetchContactorMiddleware(
     Store<MainState> store, action, NextDispatcher next) {
   if (action['type'] == StoreActions.init) {
     store.state.pageNum = 1;
-    getImage(store);
+    getPictureList(store);
   }
   if (action['type'] == StoreActions.loadMore) {
-    getImage(store);
+    getPictureList(store);
+  }
+  if (action['type'] == StoreActions.initFav) {
+    getFavorites(store);
   }
   next(action);
 }
 
 class MainState {
   final List<Widget> imageList;
-  final List<WallImage> imageDataList;
-
+  final List<PictureInfo> imageDataList;
+  final List<PictureInfo> favPictureList;
   bool preview;
   bool loading;
+  bool favLoading = false;
   int pageNum;
+  int favPageNum = 1;
   int currentIndex;
   int bottomNavIndex = 2;
   UserAccount account = UserAccount();
@@ -100,11 +117,11 @@ class MainState {
     "Xamarin",
   ];
   MainState(this.imageList, this.imageDataList, this.preview, this.loading,
-      this.pageNum, this.currentIndex, this.bottomNavIndex);
+      this.pageNum, this.currentIndex, this.bottomNavIndex, this.favPictureList);
 
-  factory MainState.initState() => MainState([], [], false, false, 1, 0, 1);
+  factory MainState.initState() => MainState([], [], false, false, 1, 0, 1,[]);
 
-  void addWallImage(WallImage img) {
+  void addPictureInfo(PictureInfo img) {
     imageDataList.add(img);
   }
 
@@ -128,6 +145,7 @@ class SearchParams {
     'sorting': 'toplist',
     'order': 'desc',
     'page': '1',
+    'apikey':'MJq2IZyeA8QI43iccfNDJSpWQ8qKw8w5',
   };
   final Map<String,String> categoriesMap = {
     'general':'1',
@@ -211,6 +229,10 @@ class HandleActions {
     store.dispatch({'type':StoreActions.loadMore});
   }
 
+  void initFav(){
+    getFavorites(store);
+  }
+
   Future<String> getToken(String url) async {
     loading = true;
     Map<String, String> header = {};
@@ -234,7 +256,7 @@ class HandleActions {
     }
   }
 
-  void login() {
+  void login(Function callback) {
     if (loading) return;
     UserAccount account = store.state.account;
     loading = true;
@@ -253,7 +275,8 @@ class HandleActions {
         .then((response) async {
       loading = false;
       // login Success
-      if(response.statusCode == 302){
+      if(response.statusCode == 200){
+        callback();
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('userName', account.username);
         prefs.setString('password', account.password);
@@ -309,9 +332,32 @@ enum SearchType{
   random,
   latest
 }
+//https://wallhaven.cc/favorites
+Future<void> getFavorites(Store<MainState> store) async{
+  if (store.state.favLoading) return;
+  var params = {
+    'page':store.state.favPageNum.toString(),
+    'apikey':'MJq2IZyeA8QI43iccfNDJSpWQ8qKw8w5'
+  };
+  store.state.favLoading = true;
+  store.state.favPageNum++;
+  if(!store.state.dioReady){
+    dio = await initDio();
+    store.state.dioReady = true;
+  }
+  dio
+      .get('/api/v1/collections/ikism/749153',
+      queryParameters: params,)
+      .then((response) {
+    store.state.favLoading = false;
+    Collections collections = Collections.fromJson(response.data);
+    print(collections.data);
+    store.dispatch({'type': StoreActions.addFavPictureList, 'data': collections.data});
+    // ignore: invalid_return_type_for_catch_error, avoid_print
+  }).catchError((error) => {print(error.toString())});
+}
 
-
-Future<void> getImage(Store<MainState> store) async {
+Future<void> getPictureList(Store<MainState> store) async {
   if (store.state.loading) return;
   //https://wallhaven.cc/search?categories=010&purity=110&topRange=1M&sorting=toplist&order=desc
   //https://wallhaven.cc/search?categories=010&purity=001&sorting=hot&order=desc
@@ -323,70 +369,64 @@ Future<void> getImage(Store<MainState> store) async {
     dio = await initDio();
     store.state.dioReady = true;
   }
+  //https://wallhaven.cc/api/v1/search
   dio
-      .get('/search',
+      .get('/api/v1/search',
           queryParameters: params,
-          options: Options(headers: {'x-requested-with': 'XMLHttpRequest'}))
+          // options: Options(headers: {'x-requested-with': 'XMLHttpRequest'})
+  )
       .then((response) {
     store.state.loading = false;
 
-    // Api.getSetCookie(response: response);
-    var document = parse(response.data.replaceAll("/small/", "/orig/"));
-    var figureList = document.getElementsByTagName("figure");
-    List<Widget> list = [];
-    List<WallImage> dataList = [];
-    // double halfWidth = MediaQuery.of(context).size.width / 2;
-    for (var element in figureList) {
-      var img = element.querySelector('img');
-      var href = element.querySelector('.preview');
-      var size = element.querySelector('.wall-res');
-      var png = element.querySelector('.png');
-      var obj = WallImage('');
-      img?.attributes.forEach((key, value) {
-        if (key == "data-src") {
-          obj.pSrc = value;
-        }
-      });
-      href?.attributes.forEach((key, value) {
-        if (key == "href") {
-          obj.href = value;
-        }
-      });
-      String nSize = (size?.innerHtml).toString();
-      List sizes = nSize.split(' x ');
 
-      if (sizes.isNotEmpty) {
-        double rWidth = double.parse(sizes[0]);
-        double rHeight = double.parse(sizes[1]);
-        // double pHeight = rHeight / (rWidth / halfWidth);
-        obj.width = rWidth;
-        obj.height = rHeight;
-        List<String> fullSrc = obj.pSrc
-            .replaceAll('/th.wallhaven.cc/orig/', '/w.wallhaven.cc/full/')
-            .split('/');
-        fullSrc[fullSrc.length - 1] =
-            "wallhaven-${fullSrc[fullSrc.length - 1]}";
-        if (png != null) {
-          fullSrc[fullSrc.length - 1] =
-              fullSrc[fullSrc.length - 1].replaceAll('.jpg', '.png');
-        }
-        obj.src = fullSrc.join('/');
-        // obj.pSrc = obj.src; // TODO be remove
-        // debugPrint(obj.toString());
-        // list.add(PictureComp(
-        //     // pHeight: pHeight,
-        //     // halfWidth: halfWidth,
-        //     image: obj,
-        //     type: WallImage.previewPicture));
-        // } else {
-        //   list.add(Image.network(obj.pSrc, fit: BoxFit.scaleDown));
-      }
-      // print(obj);
-      dataList.add(obj);
-    }
-    // print(state.im)
-    store.dispatch({'type': StoreActions.addAllWidget, 'data': list});
-    store.dispatch({'type': StoreActions.addAllWallImage, 'data': dataList});
+    SearchResult collections = SearchResult.fromJson(response.data);
+    store.dispatch({'type': StoreActions.addAllPictureInfo, 'data': collections.data});
   // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }
+
+List<WallImage> handleHtml(String responseBody){
+  List<WallImage> dataList = [];
+  var document = parse(responseBody.replaceAll("/small/", "/orig/"));
+  var figureList = document.getElementsByTagName("figure");
+  for (var element in figureList) {
+    var img = element.querySelector('img');
+    var href = element.querySelector('.preview');
+    var size = element.querySelector('.wall-res');
+    var png = element.querySelector('.png');
+    // var obj = WallImage('');
+    // img?.attributes.forEach((key, value) {
+    //   if (key == "data-src") {
+    //     obj.pSrc = value;
+    //   }
+    // });
+    // href?.attributes.forEach((key, value) {
+    //   if (key == "href") {
+    //     obj.href = value;
+    //   }
+    // });
+    // String nSize = (size?.innerHtml).toString();
+    // List sizes = nSize.split(' x ');
+    //
+    // if (sizes.isNotEmpty) {
+    //   double rWidth = double.parse(sizes[0]);
+    //   double rHeight = double.parse(sizes[1]);
+    //   obj.width = rWidth;
+    //   obj.height = rHeight;
+    //   List<String> fullSrc = obj.pSrc
+    //       .replaceAll('/th.wallhaven.cc/orig/', '/w.wallhaven.cc/full/')
+    //       .split('/');
+    //   fullSrc[fullSrc.length - 1] =
+    //   "wallhaven-${fullSrc[fullSrc.length - 1]}";
+    //   if (png != null) {
+    //     fullSrc[fullSrc.length - 1] =
+    //         fullSrc[fullSrc.length - 1].replaceAll('.jpg', '.png');
+    //   }
+    //   obj.src = fullSrc.join('/');
+    // }
+    // // print(obj);
+    // dataList.add(obj);
+  }
+  return dataList;
+}
+

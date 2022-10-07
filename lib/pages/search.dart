@@ -187,6 +187,20 @@ class SearchPage extends StatelessWidget {
                 },
                 child: const Text('search'),
               )),
+            ),
+            Container(
+              decoration: BoxDecoration(
+            border: Border.all(width: 1),
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
+              ),
+              child: Padding(
+              padding: const EdgeInsets.all(0.5),
+              child: RawMaterialButton(
+                onPressed: () {
+                  hAction.store.dispatch({'type': StoreActions.initFav});
+                },
+                child: const Text('searchFav'),
+              )),
             )
           ],
         );

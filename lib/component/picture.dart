@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:wallhevan/main.dart' show WallImage;
 import 'package:wallhevan/component/picture_comp.dart';
 
+import '../store/searchResult/picture_info.dart';
+
 class Picture extends StatelessWidget {
   const Picture({super.key});
 
   @override
   Widget build(BuildContext context) {
-    WallImage routeParams =
-        ModalRoute.of(context)?.settings.arguments as WallImage;
+    PictureInfo routeParams =
+        ModalRoute.of(context)?.settings.arguments as PictureInfo;
     return Scaffold(
       body: PictureComp(image: routeParams, type: WallImage.fullSizePicture),
       // border: Border.all(color: Colors.red, width: 1.0),

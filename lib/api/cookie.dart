@@ -72,6 +72,7 @@ class HCookieManager extends CookieManager{
       for(Cookie cookie in list){
         String name = cookie.name;
         if(name.contains('remember_web')){
+          response.statusCode = 200;
           name = 'remember_web';
         }
         prefs.setString(name,cookie.toString());

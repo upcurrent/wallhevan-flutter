@@ -43,7 +43,7 @@ class PictureViews extends StatelessWidget {
                 MainState mainState = hAction.getMainState();
                 return ExtendedImageGesturePageView.builder(
                   itemBuilder: (BuildContext context, int index) {
-                    var item = mainState.imageDataList[index].src;
+                    var item = mainState.imageDataList[index].path;
                     Widget image = PictureComp(
                         image: mainState.imageDataList[index], type: WallImage.fullSizePicture);
                     image = Container(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:getwidget/components/toast/gf_toast.dart';
 
 import '../store/index.dart';
 
@@ -41,7 +42,10 @@ class Login extends StatelessWidget {
                       ),
                       const Padding(padding: EdgeInsets.all(40.0)),
                       RawMaterialButton(
-                        onPressed: handleActions.login,
+                        onPressed:()=> handleActions.login(()=>GFToast.showToast(
+                          '登录成功！',
+                          context,
+                        )),
                         child: const Text("登录"),
                       )
                     ],
