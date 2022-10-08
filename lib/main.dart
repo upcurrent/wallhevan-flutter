@@ -7,14 +7,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:redux/redux.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/pages/favorites.dart';
 import 'package:wallhevan/pages/picture_list.dart';
 import 'package:wallhevan/pages/search.dart';
 // import 'package:wallhevan/pages/taberPage.dart';
 import 'package:wallhevan/picture_views.dart';
 import 'package:wallhevan/store/index.dart';
-import 'package:wallhevan/testTab.dart';
 import 'component/picture.dart';
 import 'Account/account.dart';
 import 'Account/login.dart';
@@ -113,12 +111,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onItemTapped(int index, Function callback) async {
-    if (index == 2 || index == 3) {
-      final prefs = await SharedPreferences.getInstance();
-      String? rememberCookie = prefs.getString('remember_web');
-      callback(rememberCookie == null);
-      return;
-    }
+    // if (index == 2 || index == 3) {
+    //   final prefs = await SharedPreferences.getInstance();
+    //   String? rememberCookie = prefs.getString('remember_web');
+    //   callback(rememberCookie == null);
+    //   return;
+    // }
     callback(false);
     // store.dispatch({'type': StoreActions.selectBottomNav, 'data': index});
   }
@@ -213,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                   }),
                   children: const [
-                    PictureList(),
+                    PictureList(viewType: StoreActions.viewList),
                     // SliverAppBarExample(),
                     SearchPage(),
                     FavoritesPage(),

@@ -34,7 +34,7 @@ class Account extends StatelessWidget {
                             child: Text(account.username),
                           )
                       ),
-                      Container(
+                      SizedBox(
                           height: 100,
                           child:GestureDetector(
                             onTap: (){

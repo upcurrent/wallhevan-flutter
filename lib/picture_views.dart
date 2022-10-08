@@ -4,12 +4,22 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/main.dart' show WallImage;
 import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/store/index.dart';
+import 'package:wallhevan/store/searchResult/picture_info.dart';
 
 class PictureViews extends StatelessWidget {
   // List<WallImage> pics;
   // int currentIndex;
 
   const PictureViews({super.key});
+
+  List<PictureInfo> getPicture(MainState state) {
+    switch (state.viewType) {
+      case StoreActions.viewFav:
+        return state.favPictureList;
+      default:
+        return state.imageDataList;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,17 +45,18 @@ class PictureViews extends StatelessWidget {
             // }
           },
           child: StoreConnector<MainState, HandleActions>(
-              // onWillChange: _onReduxChange,
-              // onInitialBuild: _afterBuild,
               distinct: true,
               converter: (store) => HandleActions(store),
               builder: (context, hAction) {
                 MainState mainState = hAction.getMainState();
+                List<PictureInfo> pictures = getPicture(mainState);
                 return ExtendedImageGesturePageView.builder(
                   itemBuilder: (BuildContext context, int index) {
-                    var item = mainState.imageDataList[index].path;
+                    var item = pictures[index].path;
                     Widget image = PictureComp(
-                        image: mainState.imageDataList[index], type: WallImage.fullSizePicture);
+                        image: pictures[index],
+                        type: WallImage.fullSizePicture,
+                        url: pictures[index].path);
                     image = Container(
                       padding: const EdgeInsets.all(5.0),
                       child: image,
@@ -59,11 +70,11 @@ class PictureViews extends StatelessWidget {
                       return image;
                     }
                   },
-                  itemCount: mainState.imageDataList.length,
+                  itemCount: pictures.length,
                   onPageChanged: (int index) {
-                     if(index >= mainState.imageDataList.length - 2){
-                       hAction.loadMore();
-                     }
+                    if (index >= pictures.length - 2) {
+                      hAction.loadMore(mainState.viewType);
+                    }
                   },
                   controller: ExtendedPageController(
                     initialPage: mainState.currentIndex,

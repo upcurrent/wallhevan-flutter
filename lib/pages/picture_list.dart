@@ -1,69 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:wallhevan/store/searchResult/picture_info.dart';
 
 import '../component/picture_comp.dart';
 import '../store/index.dart';
 
-
 class PictureList extends StatefulWidget {
-  const PictureList({super.key});
+  const PictureList({super.key, required this.viewType, this.keepAlive});
+
+  final StoreActions viewType;
+
+  final bool? keepAlive;
 
   @override
   State<StatefulWidget> createState() {
     return _PictureListState();
   }
-
 }
 
-class _PictureListState extends State<PictureList> with AutomaticKeepAliveClientMixin{
+class _PictureListState extends State<PictureList>
+    with AutomaticKeepAliveClientMixin {
+  List<PictureInfo> getPicture(MainState state) {
+    switch (widget.viewType) {
+      case StoreActions.viewFav:
+        return state.favPictureList;
+      default:
+        return state.imageDataList;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return StoreConnector<MainState, HandleActions>(
-        // onWillChange: _onReduxChange,
-        // onInitialBuild: _afterBuild,
         distinct: true,
         converter: (store) => HandleActions(store),
-        onInit: (store) => store.dispatch({'type': StoreActions.init}),
+        onInit: (store) => store
+            .dispatch({'type': StoreActions.init, 'viewType': widget.viewType}),
         builder: (context, hAction) {
           MainState mainState = hAction.getMainState();
+          List<PictureInfo> pictures = getPicture(mainState);
           return NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
               if (scrollInfo.metrics.pixels >=
                   scrollInfo.metrics.maxScrollExtent - 400) {
-                hAction.store.dispatch({'type': StoreActions.loadMore});
+                hAction.store.dispatch({
+                  'type': StoreActions.loadMore,
+                  'viewType': widget.viewType
+                });
                 return true;
               }
               return false;
             },
-            child:MasonryGridView.count(
-                padding: EdgeInsets.zero,
-                crossAxisCount: 2,
-                itemCount: mainState.imageDataList.length,
-                itemBuilder: (context, index) {
-                  // return Tile(
-                  //   index: index,
-                  //   extent: (index % 5 + 1) * 100,
-                  // );
-                  // return PictureComp.create(  context, mainState.imageDataList[index]);
-                  return GestureDetector(
-                      onTap: () => {
-                        hAction.store.dispatch({
-                          'type': StoreActions.preview,
-                          'currentIndex': index
-                        }),
-                        Navigator.pushNamed(context, '/pictureViews'),
-                      },
-                      child: PictureComp.create(
-                          context, mainState.imageDataList[index]));
-                },
-              ),
+            child: MasonryGridView.count(
+              padding: EdgeInsets.zero,
+              crossAxisCount: 2,
+              itemCount: pictures.length,
+              itemBuilder: (context, index) {
+                // return Tile(
+                //   index: index,
+                //   extent: (index % 5 + 1) * 100,
+                // );
+                // return PictureComp.create(  context, pictures[index]);
+                String url = pictures[index].thumbs.original!;
+                String path = pictures[index].path;
+                PictureComp pictureComp =
+                    PictureComp.create(context, pictures[index], url);
+
+                return GestureDetector(
+                    onTap: () {
+                      hAction.store.dispatch({
+                        'type': StoreActions.preview,
+                        'viewType': widget.viewType,
+                        'currentIndex': index
+                      });
+                      Navigator.pushNamed(context, '/pictureViews');
+                    },
+                    child: hAction.hasCache(path)
+                        ? PictureComp.create(context, pictures[index], path)
+                        : pictureComp);
+              },
+            ),
           );
         });
   }
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => widget.keepAlive ?? true;
 }

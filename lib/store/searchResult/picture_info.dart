@@ -42,7 +42,7 @@ class PictureInfo {
         colors: json['colors'] != null ? json['colors'].cast<String>() : [],
         path: json['path'],
         thumbs:
-        json['thumbs'] != null ? Thumbs.fromJson(json['thumbs']) : null);
+        json['thumbs'] != null ? Thumbs.fromJson(json['thumbs']) : Thumbs(large: '', original: '', small: ''));
   }
   final String id;
   final String url;
@@ -61,7 +61,7 @@ class PictureInfo {
   final String createdAt;
   final List<String> colors;
   final String path;
-  final Thumbs? thumbs;
+  final Thumbs thumbs;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -82,9 +82,7 @@ class PictureInfo {
     map['created_at'] = createdAt;
     map['colors'] = colors;
     map['path'] = path;
-    if (thumbs != null) {
-      map['thumbs'] = thumbs!.toJson();
-    }
+    map['thumbs'] = thumbs.toJson();
     return map;
   }
 }
