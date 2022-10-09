@@ -7,15 +7,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:redux/redux.dart';
-import 'package:wallhevan/pages/favorites.dart';
-import 'package:wallhevan/pages/picture_list.dart';
-import 'package:wallhevan/pages/search.dart';
-// import 'package:wallhevan/pages/taberPage.dart';
-import 'package:wallhevan/picture_views.dart';
-import 'package:wallhevan/store/index.dart';
+import 'pages/favorites.dart';
+import 'pages/home.dart';
+import 'pages/search.dart';
+import 'pages/picture_views.dart';
+import 'store/index.dart';
 import 'component/picture.dart';
-import 'Account/account.dart';
-import 'Account/login.dart';
+import 'account/account.dart';
+import 'account/login.dart';
 import 'generated/l10n.dart';
 
 void main() {
@@ -43,7 +42,6 @@ class WallHaven extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // super.build(context);
     return StoreProvider<MainState>(
         store: store,
         child: MaterialApp(
@@ -74,19 +72,12 @@ class WallHaven extends StatelessWidget {
               '/pictureViews': (context) => const PictureViews(),
               '/account': (context) => const Account(),
               '/login': (context) => const Login(),
-              // '/search': (context) => const TabarDemo(),
             },
             home: StoreBuilder<MainState>(
-              // onInit: (store) {
-              //   print(S.current.general);
-              // },
               builder: (BuildContext context, Store<MainState> store) =>
                   MyHomePage(store: store),
             )));
   }
-
-  // @override
-  // bool get wantKeepAlive => true;
 }
 
 class MyHomePage extends StatefulWidget {
@@ -123,110 +114,70 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints.expand(),
-      child: Scaffold(
-          // appBar: AppBar(
-          //   title: const Text('AppBar Demo'),
-          //   actions: <Widget>[
-          //     IconButton(
-          //       icon: const Icon(Icons.add_alert),
-          //       tooltip: 'Show Snackbar',
-          //       onPressed: () {
-          //         ScaffoldMessenger.of(context).showSnackBar(
-          //             const SnackBar(content: Text('This is a snackbar')));
-          //       },
-          //     ),
-          //     IconButton(
-          //       icon: const Icon(Icons.navigate_next),
-          //       tooltip: 'Go to the next page',
-          //       onPressed: () {
-          //         Navigator.push(context, MaterialPageRoute<void>(
-          //           builder: (BuildContext context) {
-          //             return Scaffold(
-          //               appBar: AppBar(
-          //                 title: const Text('Next page'),
-          //               ),
-          //               body: const Center(
-          //                 child: Text(
-          //                   'This is the next page',
-          //                   style: TextStyle(fontSize: 24),
-          //                 ),
-          //               ),
-          //             );
-          //           },
-          //         ));
-          //       },
-          //     ),
-          //   ],
-          // ),
-          bottomNavigationBar: BottomNavigationBar(
-              items: <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.home),
-                  label: S.current.home,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.search),
-                  label: S.current.search,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.star),
-                  label: S.current.favoritesTab,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.account_circle),
-                  label: S.current.my,
-                ),
-              ],
-              type: BottomNavigationBarType.fixed,
-              currentIndex: currentIndex,
-              selectedItemColor: Colors.pinkAccent[100],
-              onTap: (index) => _onItemTapped(
-                  index,
-                  (flag) => flag
-                      ? Navigator.pushNamed(context, '/login')
-                      : _controller.jumpToPage(index))),
-          body: StoreConnector<MainState, HandleActions>(
-              // onWillChange: _onReduxChange,
-              // onInitialBuild: _afterBuild,
-              distinct: true,
-              converter: (store) => HandleActions(store),
-              onInit: (store) => store.dispatch({'type': StoreActions.init}),
-              builder: (context, hAction) {
-                // MainState mainState = hAction.getMainState();
-                return PageView(
-                  // physics: const NeverScrollableScrollPhysics(),
-                  controller: _controller,
-                  onPageChanged: (index) => _onItemTapped(index, (flag) {
-                    if (flag) {
-                      Navigator.pushNamed(context, '/login');
-                      Timer(const Duration(milliseconds: 500), () {
-                        _controller.jumpToPage(currentIndex);
-                      });
-                    } else {
-                      setState(() {
-                        currentIndex = index;
-                      });
-                    }
-                  }),
-                  children: const [
-                    PictureList(viewType: StoreActions.viewList),
-                    // SliverAppBarExample(),
-                    SearchPage(),
-                    FavoritesPage(),
-                    Account()
-                  ],
-                );
-                // return [
-                //   const PictureList(),
-                //   const SliverAppBarExample(),
-                //   const FavoritesPage(),
-                //   const Account()
-                // ][mainState.bottomNavIndex];
-              })),
-    );
-    // });
+    return Scaffold(
+        bottomNavigationBar: BottomNavigationBar(
+            items: <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.home),
+                label: S.current.home,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.search),
+                label: S.current.search,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.star),
+                label: S.current.favoritesTab,
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.account_circle),
+                label: S.current.my,
+              ),
+            ],
+            type: BottomNavigationBarType.fixed,
+            currentIndex: currentIndex,
+            selectedItemColor: Colors.pinkAccent[100],
+            onTap: (index) => _onItemTapped(
+                index,
+                (flag) => flag
+                    ? Navigator.pushNamed(context, '/login')
+                    : _controller.jumpToPage(index))),
+        body: Container(
+            constraints: const BoxConstraints.expand(),
+            decoration: const BoxDecoration(
+                image: DecorationImage(
+              image: AssetImage('images/wallhaven_background.jpg'),
+              fit: BoxFit.cover,
+            )),
+            child: StoreConnector<MainState, HandleActions>(
+                distinct: true,
+                converter: (store) => HandleActions(store),
+                onInit: (store) => store.dispatch({'type': StoreActions.init}),
+                builder: (context, hAction) {
+                  return PageView(
+                    // physics: const NeverScrollableScrollPhysics(),
+                    controller: _controller,
+                    onPageChanged: (index) => _onItemTapped(index, (flag) {
+                      if (flag) {
+                        Navigator.pushNamed(context, '/login');
+                        Timer(const Duration(milliseconds: 500), () {
+                          _controller.jumpToPage(currentIndex);
+                        });
+                      } else {
+                        setState(() {
+                          currentIndex = index;
+                        });
+                      }
+                    }),
+                    children: const [
+                      HomePage(),
+                      // SliverAppBarExample(),
+                      SearchPage(),
+                      FavoritesPage(),
+                      Account()
+                    ],
+                  );
+                })));
   }
 }
 

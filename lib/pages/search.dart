@@ -11,9 +11,9 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
-            body: StoreConnector<MainState, HandleActions>(
+    return Container(
+      constraints:const BoxConstraints.expand(),
+        child:StoreConnector<MainState, HandleActions>(
       converter: (store) => HandleActions(store),
       builder: (context, hAction) {
         void setSorting(String value) {
@@ -191,7 +191,7 @@ class SearchPage extends StatelessWidget {
           ],
         );
       },
-    )));
+    ));
   }
 }
 
