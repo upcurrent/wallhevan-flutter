@@ -12,15 +12,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   List<Widget> cartList(HandleActions hAction) {
     bool sortingSelected(String value) {
       return hAction.store.state.search.params['sorting'] == value;
     }
+
     void setSorting(String value) {
-      hAction.setParams('sorting', value);
-      hAction.store.dispatch({'type': StoreActions.init});
+      hAction.setParams('sorting', value, search: true);
     }
+
     const BoxDecoration decoration = BoxDecoration(
         gradient: LinearGradient(
       begin: Alignment.topCenter,
@@ -31,7 +31,6 @@ class _HomePageState extends State<HomePage> {
       ],
     ));
     BoxDecoration selDecoration = BoxDecoration(
-      // color:Color(0x1a000000),
       border: Border.all(color: const Color(0x50000000), width: 1),
       boxShadow: const <BoxShadow>[
         BoxShadow(
@@ -45,30 +44,27 @@ class _HomePageState extends State<HomePage> {
 
     Padding card(Text text, Image image, String value) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-        child:
-            GestureDetector(
-              onTap: ()=>setSorting(value),
-              child: Container(
-                decoration: sortingSelected(value) ? selDecoration : decoration,
-                height: 120,
-                width: 120,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    SizedBox(
-                      height: 32,
-                      width: 32,
-                      child: image,
-                    ),
-                    text,
-                  ],
-                ),
+          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+          child: GestureDetector(
+            onTap: () => setSorting(value),
+            child: Container(
+              decoration: sortingSelected(value) ? selDecoration : decoration,
+              height: 120,
+              width: 120,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(
+                    height: 32,
+                    width: 32,
+                    child: image,
+                  ),
+                  text,
+                ],
               ),
-            )
-
-      );
+            ),
+          ));
     }
 
     return [
@@ -81,6 +77,14 @@ class _HomePageState extends State<HomePage> {
       card(const Text('Random', style: TextStyle(color: Color(0xffee7733))),
           Image.asset('images/random.png'), 'random'),
     ];
+  }
+
+  String keyword = '';
+
+  void setKeyword(String value) {
+    setState(() {
+      keyword = value;
+    });
   }
 
   @override
@@ -99,13 +103,40 @@ class _HomePageState extends State<HomePage> {
                     floating: false,
                     toolbarHeight: 190,
                     backgroundColor: Colors.transparent,
-                    title: SizedBox(
-                      height: 120,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal, //方向
-                        // alignment: WrapAlignment.start,
-                        children: cartList(hAction),
-                      ),
+                    title: Column(
+                      children: [
+                        SizedBox(
+                          height: 120,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal, //方向
+                            children: cartList(hAction),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                          child: SizedBox(
+                            height: 45,
+                            child: TextField(
+                              controller: TextEditingController(
+                                text: keyword,
+                              ),
+                              textInputAction: TextInputAction.search,
+                              cursorColor: Colors.white,
+                              style: const TextStyle(color: Colors.white),
+                              onSubmitted: (value) {
+                                hAction.setParams('q', value, search: true);
+                                setKeyword(value);
+                              },
+                              decoration: const InputDecoration(
+                                  hintText: 'Search....',
+                                  suffixIcon: Icon(
+                                    Icons.search,
+                                    color: Colors.white,
+                                  )),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                     expandedHeight: 190,
                   )

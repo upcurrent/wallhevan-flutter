@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 import 'package:redux/redux.dart';
+import 'package:wallhevan/component/search_bar.dart';
 import 'pages/favorites.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
@@ -64,6 +65,16 @@ class WallHaven extends StatelessWidget {
               // or simply save your changes to "hot reload" in a Flutter IDE).
               // Notice that the counter didn't reset back to zero; the application
               // is not restarted.
+              inputDecorationTheme: const InputDecorationTheme(
+                // pri: Text('Search...'),
+                  fillColor: Color(0x801b1b1b),
+                  filled: true,
+                  focusedBorder: InputBorder.none,
+                  border:InputBorder.none,
+                  // hintText: 'Search....',
+                  hintStyle: TextStyle(color: Colors.white),
+                  // suffixIcon: Icon(Icons.search,color: Colors.white,)),
+            ),
               primarySwatch: Colors.blue,
             ),
             initialRoute: '/',
@@ -72,6 +83,7 @@ class WallHaven extends StatelessWidget {
               '/pictureViews': (context) => const PictureViews(),
               '/account': (context) => const Account(),
               '/login': (context) => const Login(),
+              '/search':(context) => const SearchBarDemo(),
             },
             home: StoreBuilder<MainState>(
               builder: (BuildContext context, Store<MainState> store) =>
@@ -115,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset:false,
         bottomNavigationBar: BottomNavigationBar(
             items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
@@ -130,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 label: S.current.favoritesTab,
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.account_circle),
+                icon: const Icon(Icons.settings),
                 label: S.current.my,
               ),
             ],
@@ -147,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
             decoration: const BoxDecoration(
                 image: DecorationImage(
               image: AssetImage('images/wallhaven_background.jpg'),
-              fit: BoxFit.cover,
+              fit: BoxFit.none,
             )),
             child: StoreConnector<MainState, HandleActions>(
                 distinct: true,

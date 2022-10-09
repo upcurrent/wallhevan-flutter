@@ -103,6 +103,7 @@ void fetchContactorMiddleware(
       }
     } else {
       state.pageNum = 1;
+      state.listTotal = 0;
       getPictureList(store);
     }
   }
@@ -187,6 +188,7 @@ class SearchParams {
     'sorting': 'toplist',
     'order': 'desc',
     'page': '1',
+    'q':'',
   };
   final Map<String, String> categoriesMap = {
     'general': '1',
@@ -247,9 +249,12 @@ class HandleActions {
         {'type': StoreActions.accountChange, 'data': store.state.account});
   }
 
-  void setParams(String key, String value) {
+  void setParams(String key, String value, {bool search = false}) {
     getSearch().params[key] = value;
     store.dispatch({'type': StoreActions.searchChange});
+    if(search){
+      store.dispatch({'type': StoreActions.init});
+    }
   }
 
   void setCategories(String key) {
@@ -376,8 +381,9 @@ enum SearchType { topList, hot, random, latest }
 Future<void> getFavorites(Store<MainState> store) async {
   MainState state = store.state;
   if (state.favLoading) return;
-  if (state.favPageNum != 1 && state.favTotal >= state.favPictureList.length)
+  if (state.favPageNum != 1 && state.favTotal >= state.favPictureList.length) {
     return;
+  }
   int id = store.state.favId;
   if (id == 0) return;
   final prefs = await StorageManger.prefs;
@@ -411,16 +417,20 @@ Future<void> getFavorites(Store<MainState> store) async {
 }
 
 Future<void> getPictureList(Store<MainState> store) async {
-  if (store.state.loading) return;
-  var params = store.state.search.params;
+  MainState state = store.state;
+  if (state.loading) return;
+  if (state.pageNum != 1 && state.listTotal >= state.favPictureList.length) {
+    return;
+  }
+  var params = state.search.params;
   final prefs = await StorageManger.prefs;
   params['page'] = store.state.pageNum.toString();
   params['apikey'] = prefs.getString('apiKey') ?? "";
-  store.state.loading = true;
-  store.state.pageNum++;
-  if (!store.state.dioReady) {
+  state.loading = true;
+  state.pageNum++;
+  if (!state.dioReady) {
     dio = await initDio();
-    store.state.dioReady = true;
+    state.dioReady = true;
   }
   //https://wallhaven.cc/api/v1/search
   dio
@@ -430,23 +440,28 @@ Future<void> getPictureList(Store<MainState> store) async {
     // options: Options(headers: {'x-requested-with': 'XMLHttpRequest'})
   )
       .then((response) {
-    store.state.loading = false;
-    SearchResult collections = SearchResult.fromJson(response.data);
+    state.loading = false;
+    SearchResult searchResult = SearchResult.fromJson(response.data);
+    final meta = searchResult.meta;
+    if (meta != null) {
+      store.state.favTotal = meta.total;
+    }
     store.dispatch(
-        {'type': StoreActions.addAllPictureInfo, 'data': collections.data});
+        {'type': StoreActions.addAllPictureInfo, 'data': searchResult.data});
     // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }
 
 Future<void> getFavList(Store<MainState> store) async {
-  if (store.state.loading) return;
+  MainState state = store.state;
+  if (state.loading) return;
   SharedPreferences prefs = await StorageManger.prefs;
   Map<String, dynamic> params = {
     'apikey': prefs.getString('apiKey') ?? '',
   };
-  if (!store.state.dioReady) {
+  if (!state.dioReady) {
     dio = await initDio();
-    store.state.dioReady = true;
+    state.dioReady = true;
   }
   dio
       .get(
@@ -454,7 +469,7 @@ Future<void> getFavList(Store<MainState> store) async {
     queryParameters: params,
   )
       .then((response) {
-    store.state.loading = false;
+    state.loading = false;
     CollectionList favList = CollectionList.fromJson(response.data);
     store.dispatch(
         {'type': StoreActions.setFavList, 'data': favList.collectionListData});

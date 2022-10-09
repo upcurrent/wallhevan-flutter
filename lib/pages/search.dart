@@ -47,6 +47,35 @@ class SearchPage extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+           SizedBox(
+              height: 80,
+              child:
+              TextField(
+                controller: TextEditingController(
+                  text: '',
+                ),
+                textInputAction: TextInputAction.search,
+                cursorColor: Colors.white,
+                style:const TextStyle(
+                    color: Colors.white
+                ),
+                onSubmitted: (value){
+                  hAction.setParams('q', value,search:true);
+                  // setKeyword(value);
+                },
+                decoration:const InputDecoration(
+                  // pri: Text('Search...'),
+                    hintText: 'Search....',
+                    suffixIcon: Icon(Icons.search,color: Colors.white,)),
+              ),
+              // TextField(
+              //   // onChanged: handleActions.userNameChanged,
+              //   decoration: InputDecoration(
+              //     // pri: Text('Search...'),
+              //       helperText: 'Search....',
+              //       suffix: Icon(Icons.search)),
+              // ),
+            ),
             Wrap(
               spacing: 2,
               children: [
