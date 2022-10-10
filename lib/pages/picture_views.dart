@@ -7,8 +7,6 @@ import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/searchResult/picture_info.dart';
 
 class PictureViews extends StatelessWidget {
-  // List<WallImage> pics;
-  // int currentIndex;
 
   const PictureViews({super.key});
 

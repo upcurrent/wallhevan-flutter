@@ -64,9 +64,6 @@ MainState counterReducer(MainState state, dynamic action) {
     case StoreActions.init:
       // getPictureList(action['context'], state);
       break;
-    case StoreActions.selectBottomNav:
-      state.bottomNavIndex = action['data'];
-      break;
     case StoreActions.preview:
       state.currentIndex = action['currentIndex'];
       state.viewType = action['viewType'];
@@ -136,7 +133,6 @@ class MainState {
   final List<PictureInfo> favPictureList;
   final List<CollectionListData> favList;
   final Set<String> cachePic = {};
-  List<PictureInfo> viewPictureList = [];
   int favId = 0;
   bool preview;
   bool loading;
@@ -144,7 +140,6 @@ class MainState {
   int pageNum;
   int favPageNum = 1;
   int currentIndex;
-  int bottomNavIndex = 2;
   UserAccount account = UserAccount();
   SearchParams search = SearchParams();
   bool dioReady = false;
@@ -158,12 +153,11 @@ class MainState {
       this.loading,
       this.pageNum,
       this.currentIndex,
-      this.bottomNavIndex,
       this.favPictureList,
       this.favList);
 
   factory MainState.initState() =>
-      MainState([], [], false, false, 1, 0, 1, [], []);
+      MainState([], [], false, false, 1, 0, [], []);
 
   void addPictureInfo(PictureInfo img) {
     imageDataList.add(img);
@@ -381,7 +375,7 @@ enum SearchType { topList, hot, random, latest }
 Future<void> getFavorites(Store<MainState> store) async {
   MainState state = store.state;
   if (state.favLoading) return;
-  if (state.favPageNum != 1 && state.favTotal >= state.favPictureList.length) {
+  if (state.favPageNum != 1 && state.favPictureList.length >= state.favTotal) {
     return;
   }
   int id = store.state.favId;
@@ -419,7 +413,7 @@ Future<void> getFavorites(Store<MainState> store) async {
 Future<void> getPictureList(Store<MainState> store) async {
   MainState state = store.state;
   if (state.loading) return;
-  if (state.pageNum != 1 && state.listTotal >= state.favPictureList.length) {
+  if (state.pageNum != 1 && state.favPictureList.length >= state.listTotal) {
     return;
   }
   var params = state.search.params;
@@ -444,7 +438,7 @@ Future<void> getPictureList(Store<MainState> store) async {
     SearchResult searchResult = SearchResult.fromJson(response.data);
     final meta = searchResult.meta;
     if (meta != null) {
-      store.state.favTotal = meta.total;
+      store.state.listTotal = meta.total;
     }
     store.dispatch(
         {'type': StoreActions.addAllPictureInfo, 'data': searchResult.data});

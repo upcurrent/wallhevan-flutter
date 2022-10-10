@@ -13,9 +13,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Widget> cartList(HandleActions hAction) {
-    bool sortingSelected(String value) {
-      return hAction.store.state.search.params['sorting'] == value;
-    }
 
     void setSorting(String value) {
       hAction.setParams('sorting', value, search: true);
@@ -45,26 +42,39 @@ class _HomePageState extends State<HomePage> {
     Padding card(Text text, Image image, String value) {
       return Padding(
           padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          child: GestureDetector(
-            onTap: () => setSorting(value),
-            child: Container(
-              decoration: sortingSelected(value) ? selDecoration : decoration,
-              height: 120,
-              width: 120,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(
-                    height: 32,
-                    width: 32,
-                    child: image,
+          child:
+          StoreConnector<MainState,VoidCallback>(
+              converter: (store){
+                return () => HandleActions(store).setParams('sorting', value, search: true);
+              },
+              builder: (context,params){
+                return GestureDetector(
+                  onTap: () => setSorting(value),
+                  child: StoreConnector<MainState,Map>(
+                    converter: (store) => store.state.search.params,
+                    builder: (context,params){
+                      return Container(
+                        decoration: params['sorting'] == value ? selDecoration : decoration,
+                        height: 120,
+                        width: 120,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            SizedBox(
+                              height: 32,
+                              width: 32,
+                              child: image,
+                            ),
+                            text,
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  text,
-                ],
-              ),
-            ),
-          ));
+                );
+              }),
+          );
     }
 
     return [
@@ -81,10 +91,16 @@ class _HomePageState extends State<HomePage> {
 
   String keyword = '';
 
+  final ScrollController controller = ScrollController(keepScrollOffset: false);
+
   void setKeyword(String value) {
     setState(() {
       keyword = value;
     });
+  }
+  void _onReduxChange(HandleActions? old,HandleActions now){
+    print(old);
+    print(now);
   }
 
   @override
@@ -92,7 +108,8 @@ class _HomePageState extends State<HomePage> {
     return Container(
         constraints: const BoxConstraints.expand(),
         child: StoreConnector<MainState, HandleActions>(
-          converter: (store) => HandleActions(store),
+          onWillChange: _onReduxChange,
+        converter: (store) => HandleActions(store),
           builder: (context, hAction) {
             return NestedScrollView(
               headerSliverBuilder: (context, sel) {
@@ -107,6 +124,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         SizedBox(
                           height: 120,
+                          width: double.infinity,
                           child: ListView(
                             scrollDirection: Axis.horizontal, //方向
                             children: cartList(hAction),
@@ -127,9 +145,12 @@ class _HomePageState extends State<HomePage> {
                                 hAction.setParams('q', value, search: true);
                                 setKeyword(value);
                               },
-                              decoration: const InputDecoration(
+                              decoration:  InputDecoration(
                                   hintText: 'Search....',
-                                  suffixIcon: Icon(
+                                  prefixIcon: IconButton(
+                                    icon: const Icon(Icons.menu_open,color: Colors.white,), onPressed: () {  }
+                                  ),
+                                  suffixIcon: const Icon(
                                     Icons.search,
                                     color: Colors.white,
                                   )),
@@ -142,7 +163,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 ];
               },
-              body: const PictureList(viewType: StoreActions.viewList),
+              body: PictureList(viewType: StoreActions.viewList,controller: controller),
             );
           },
         ));
