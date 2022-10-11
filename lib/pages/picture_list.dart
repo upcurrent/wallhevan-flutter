@@ -71,7 +71,8 @@ class _PictureListState extends State<PictureList>
                       hAction.store.dispatch({
                         'type': StoreActions.preview,
                         'viewType': widget.viewType,
-                        'currentIndex': index
+                        'currentIndex': index,
+                        'url': pictures[index].path
                       });
                       Navigator.pushNamed(context, '/pictureViews');
                     },

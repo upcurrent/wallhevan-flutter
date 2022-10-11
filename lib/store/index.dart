@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
 import 'package:wallhevan/store/collections/collection_list_data.dart';
 import 'package:wallhevan/store/collections/collections.dart';
+import 'package:wallhevan/store/picture_res/picture_res.dart';
 import 'package:wallhevan/store/search_result/search_result.dart';
 import 'collections/collection_list.dart';
 import 'search_result/picture_info.dart';
@@ -70,6 +71,7 @@ MainState counterReducer(MainState state, dynamic action) {
       state.currentIndex = action['currentIndex'];
       state.viewType = action['viewType'];
       state.preview = !state.preview;
+      state.cachePic.add(action['url']);
       break;
     case StoreActions.accountChange:
       state.account = action['data'];
@@ -364,8 +366,8 @@ class HandleActions {
 }
 
 class UserAccount {
-  String username = 'ikism';
-  String password = 'qpwoeiruty-1234';
+  String username = '';
+  String password = '';
   String token = '';
   @override
   String toString() {
@@ -384,11 +386,10 @@ Future<void> getFavorites(Store<MainState> store) async {
   }
   int id = store.state.favId;
   if (id == 0) return;
-  final prefs = await StorageManger.prefs;
   var params = {
     'page': store.state.favPageNum.toString(),
     'purity': '111',
-    'apikey': prefs.getString('apiKey') ?? ''
+    'apikey': await StorageManger.getApiKey(),
   };
   store.state.favLoading = true;
   store.state.favPageNum++;
@@ -420,6 +421,12 @@ String getRandomSeed(){
   return List.generate(6, (_) => base[rng.nextInt(base.length)]).join('');
 }
 
+Future<PictureRes> getPictureInfo(String id) async{
+  String apiKey = await StorageManger.getApiKey();
+  Response res = await dio.get('/api/vi/w$id',queryParameters: {'apikey':apiKey});
+  return PictureRes.fromJson(res.data);
+}
+
 Future<void> getPictureList(Store<MainState> store) async {
   MainState state = store.state;
   if (state.loading) return;
@@ -427,9 +434,8 @@ Future<void> getPictureList(Store<MainState> store) async {
     return;
   }
   var params = state.search.params;
-  final prefs = await StorageManger.prefs;
   params['page'] = store.state.pageNum.toString();
-  params['apikey'] = prefs.getString('apiKey') ?? "MJq2IZyeA8QI43iccfNDJSpWQ8qKw8w5";
+  params['apikey'] = await StorageManger.getApiKey();
   if(params['sorting'] == 'random'){
     if(params['seed'] == ''){
       params['seed'] = getRandomSeed();
@@ -466,9 +472,8 @@ Future<void> getPictureList(Store<MainState> store) async {
 Future<void> getFavList(Store<MainState> store) async {
   MainState state = store.state;
   if (state.loading) return;
-  SharedPreferences prefs = await StorageManger.prefs;
   Map<String, dynamic> params = {
-    'apikey': prefs.getString('apiKey') ?? 'MJq2IZyeA8QI43iccfNDJSpWQ8qKw8w5',
+    'apikey': await StorageManger.getApiKey(),
   };
   if (!state.dioReady) {
     dio = await initDio();
