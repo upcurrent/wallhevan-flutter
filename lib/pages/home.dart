@@ -13,9 +13,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Widget> cartList(HandleActions hAction) {
-
     void setSorting(String value) {
-      hAction.setParams('sorting', value, search: true);
+      hAction.setParams({'sorting': value}, search: true);
     }
 
     const BoxDecoration decoration = BoxDecoration(
@@ -41,40 +40,39 @@ class _HomePageState extends State<HomePage> {
 
     Padding card(Text text, Image image, String value) {
       return Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          child:
-          StoreConnector<MainState,VoidCallback>(
-              converter: (store){
-                return () => HandleActions(store).setParams('sorting', value, search: true);
-              },
-              builder: (context,params){
-                return GestureDetector(
-                  onTap: () => setSorting(value),
-                  child: StoreConnector<MainState,Map>(
-                    converter: (store) => store.state.search.params,
-                    builder: (context,params){
-                      return Container(
-                        decoration: params['sorting'] == value ? selDecoration : decoration,
-                        height: 120,
-                        width: 120,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            SizedBox(
-                              height: 32,
-                              width: 32,
-                              child: image,
-                            ),
-                            text,
-                          ],
-                        ),
-                      );
-                    },
+        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+        child: StoreConnector<MainState, VoidCallback>(converter: (store) {
+          return () =>
+              HandleActions(store).setParams({'sorting': value}, search: true);
+        }, builder: (context, params) {
+          return GestureDetector(
+            onTap: () => setSorting(value),
+            child: StoreConnector<MainState, Map>(
+              converter: (store) => store.state.search.params,
+              builder: (context, params) {
+                return Container(
+                  decoration:
+                      params['sorting'] == value ? selDecoration : decoration,
+                  height: 120,
+                  width: 120,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                        height: 32,
+                        width: 32,
+                        child: image,
+                      ),
+                      text,
+                    ],
                   ),
                 );
-              }),
+              },
+            ),
           );
+        }),
+      );
     }
 
     return [
@@ -98,9 +96,10 @@ class _HomePageState extends State<HomePage> {
       keyword = value;
     });
   }
-  void _onReduxChange(HandleActions? old,HandleActions now){
-    print(old);
-    print(now);
+
+  void _onReduxChange(HandleActions? old, HandleActions now) {
+    // print(old);
+    // print(now);
   }
 
   @override
@@ -109,9 +108,10 @@ class _HomePageState extends State<HomePage> {
         constraints: const BoxConstraints.expand(),
         child: StoreConnector<MainState, HandleActions>(
           onWillChange: _onReduxChange,
-        converter: (store) => HandleActions(store),
+          converter: (store) => HandleActions(store),
           builder: (context, hAction) {
             return NestedScrollView(
+              controller: controller,
               headerSliverBuilder: (context, sel) {
                 return <Widget>[
                   SliverAppBar(
@@ -120,7 +120,10 @@ class _HomePageState extends State<HomePage> {
                     floating: false,
                     toolbarHeight: 190,
                     backgroundColor: Colors.transparent,
+                    leadingWidth: 0,
+                    leading: const Icon(Icons.menu, color: Colors.transparent),
                     title: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         SizedBox(
                           height: 120,
@@ -142,14 +145,23 @@ class _HomePageState extends State<HomePage> {
                               cursorColor: Colors.white,
                               style: const TextStyle(color: Colors.white),
                               onSubmitted: (value) {
-                                hAction.setParams('q', value, search: true);
+                                hAction.setParams(
+                                    value != ''
+                                        ? {'q': value, 'sorting': "relevance"}
+                                        : {'q': value},
+                                    search: true);
                                 setKeyword(value);
                               },
-                              decoration:  InputDecoration(
+                              decoration: InputDecoration(
                                   hintText: 'Search....',
                                   prefixIcon: IconButton(
-                                    icon: const Icon(Icons.menu_open,color: Colors.white,), onPressed: () {  }
-                                  ),
+                                      icon: const Icon(
+                                        Icons.menu_open,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () {
+                                        Scaffold.of(context).openDrawer();
+                                      }),
                                   suffixIcon: const Icon(
                                     Icons.search,
                                     color: Colors.white,
@@ -163,7 +175,8 @@ class _HomePageState extends State<HomePage> {
                   )
                 ];
               },
-              body: PictureList(viewType: StoreActions.viewList,controller: controller),
+              body: PictureList(
+                  viewType: StoreActions.viewList, controller: controller),
             );
           },
         ));

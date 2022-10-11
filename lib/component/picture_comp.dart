@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:wallhevan/store/index.dart';
-import 'package:wallhevan/store/searchResult/thumbs.dart';
+import 'package:wallhevan/store/search_result/thumbs.dart';
 
 import '../main.dart' show WallImage;
-import '../store/searchResult/picture_info.dart';
+import '../store/search_result/picture_info.dart';
 
 class PictureComp extends StatefulWidget {
   final double? pHeight;
@@ -157,10 +157,6 @@ class _PictureCompState extends State<PictureComp> {
                       ),
                     );
                   case LoadState.completed:
-                    if (widget.type == WallImage.fullSizePicture) {
-                      hAction.store.dispatch(
-                          {'type': StoreActions.updatePic, 'url': widget.url});
-                    }
                     return null;
                   case LoadState.failed:
                     return null;

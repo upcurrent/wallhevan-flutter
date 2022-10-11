@@ -1,5 +1,5 @@
-import '../searchResult/Meta.dart';
-import '../searchResult/picture_info.dart';
+import '../search_result/Meta.dart';
+import '../search_result/picture_info.dart';
 
 class Collections {
   Collections({

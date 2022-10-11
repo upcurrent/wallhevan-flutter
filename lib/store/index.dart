@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -6,9 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
 import 'package:wallhevan/store/collections/collection_list_data.dart';
 import 'package:wallhevan/store/collections/collections.dart';
-import 'package:wallhevan/store/searchResult/search_result.dart';
+import 'package:wallhevan/store/search_result/search_result.dart';
 import 'collections/collection_list.dart';
-import 'searchResult/picture_info.dart';
+import 'search_result/picture_info.dart';
 
 enum StoreActions {
   addAllPictureInfo,
@@ -88,6 +90,7 @@ MainState counterReducer(MainState state, dynamic action) {
 
 void fetchContactorMiddleware(
     Store<MainState> store, action, NextDispatcher next) {
+  print(action['type']);
   MainState state = store.state;
   if (action['type'] == StoreActions.init) {
     if (action['viewType'] == StoreActions.viewFav) {
@@ -183,6 +186,7 @@ class SearchParams {
     'order': 'desc',
     'page': '1',
     'q':'',
+    'seed':'',
   };
   final Map<String, String> categoriesMap = {
     'general': '1',
@@ -243,8 +247,8 @@ class HandleActions {
         {'type': StoreActions.accountChange, 'data': store.state.account});
   }
 
-  void setParams(String key, String value, {bool search = false}) {
-    getSearch().params[key] = value;
+  void setParams(Map<String,String> args,{bool search = false}) {
+    getSearch().params.addAll(args);
     store.dispatch({'type': StoreActions.searchChange});
     if(search){
       store.dispatch({'type': StoreActions.init});
@@ -256,7 +260,7 @@ class HandleActions {
     search.categoriesMap[key] = search.categoriesMap[key] == '0' ? '1' : '0';
     List<String> cateStrs = [];
     cateStrs.addAll(search.categoriesMap.values);
-    setParams('categories', cateStrs.join(''));
+    setParams({'categories': cateStrs.join('')});
   }
 
   void setPurity(String key) {
@@ -264,7 +268,7 @@ class HandleActions {
     search.purityMap[key] = search.purityMap[key] == '0' ? '1' : '0';
     List<String> purityStrs = [];
     purityStrs.addAll(search.purityMap.values);
-    setParams('purity', purityStrs.join(''));
+    setParams({'purity': purityStrs.join('')});
   }
 
   void loadMore(StoreActions viewType) {
@@ -410,6 +414,12 @@ Future<void> getFavorites(Store<MainState> store) async {
   }).catchError((error) => {print(error.toString())});
 }
 
+String getRandomSeed(){
+  List<String> base = 'qwertyuiopasdfghjklzxcvbnm1234567890'.split('');
+  var rng =  Random();
+  return List.generate(6, (_) => base[rng.nextInt(base.length)]).join('');
+}
+
 Future<void> getPictureList(Store<MainState> store) async {
   MainState state = store.state;
   if (state.loading) return;
@@ -419,7 +429,14 @@ Future<void> getPictureList(Store<MainState> store) async {
   var params = state.search.params;
   final prefs = await StorageManger.prefs;
   params['page'] = store.state.pageNum.toString();
-  params['apikey'] = prefs.getString('apiKey') ?? "";
+  params['apikey'] = prefs.getString('apiKey') ?? "MJq2IZyeA8QI43iccfNDJSpWQ8qKw8w5";
+  if(params['sorting'] == 'random'){
+    if(params['seed'] == ''){
+      params['seed'] = getRandomSeed();
+    }
+  }else{
+    params['seed'] = '';
+  }
   state.loading = true;
   state.pageNum++;
   if (!state.dioReady) {
@@ -451,7 +468,7 @@ Future<void> getFavList(Store<MainState> store) async {
   if (state.loading) return;
   SharedPreferences prefs = await StorageManger.prefs;
   Map<String, dynamic> params = {
-    'apikey': prefs.getString('apiKey') ?? '',
+    'apikey': prefs.getString('apiKey') ?? 'MJq2IZyeA8QI43iccfNDJSpWQ8qKw8w5',
   };
   if (!state.dioReady) {
     dio = await initDio();

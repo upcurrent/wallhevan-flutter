@@ -17,7 +17,7 @@ class SearchPage extends StatelessWidget {
       converter: (store) => HandleActions(store),
       builder: (context, hAction) {
         void setSorting(String value) {
-          hAction.setParams('sorting', value);
+          hAction.setParams({'sorting': value});
         }
 
         bool sortingSelected(String value) {
@@ -33,7 +33,7 @@ class SearchPage extends StatelessWidget {
         }
 
         void setTopRang(String value) {
-          hAction.setParams('topRange', value);
+          hAction.setParams({'topRange': value});
         }
 
         bool topRangSel(String value) {
@@ -60,7 +60,7 @@ class SearchPage extends StatelessWidget {
                     color: Colors.white
                 ),
                 onSubmitted: (value){
-                  hAction.setParams('q', value,search:true);
+                  hAction.setParams({'q':value},search:true);
                   // setKeyword(value);
                 },
                 decoration:const InputDecoration(

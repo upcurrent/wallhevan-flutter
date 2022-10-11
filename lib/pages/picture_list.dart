@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:wallhevan/store/searchResult/picture_info.dart';
+import 'package:wallhevan/store/search_result/picture_info.dart';
 
 import '../component/picture_comp.dart';
 import '../store/index.dart';
@@ -56,7 +56,7 @@ class _PictureListState extends State<PictureList>
               return false;
             },
             child: MasonryGridView.count(
-              controller: widget.controller,
+              // controller: widget.controller,
               padding: EdgeInsets.zero,
               crossAxisCount: 2,
               itemCount: pictures.length,

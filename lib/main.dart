@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:getwidget/components/drawer/gf_drawer.dart';
 
 import 'package:redux/redux.dart';
-import 'package:wallhevan/component/search_bar.dart';
 import 'pages/favorites.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
@@ -66,15 +66,12 @@ class WallHaven extends StatelessWidget {
               // Notice that the counter didn't reset back to zero; the application
               // is not restarted.
               inputDecorationTheme: const InputDecorationTheme(
-                // pri: Text('Search...'),
-                  fillColor: Color(0x801b1b1b),
-                  filled: true,
-                  focusedBorder: InputBorder.none,
-                  border:InputBorder.none,
-                  // hintText: 'Search....',
-                  hintStyle: TextStyle(color: Colors.white),
-                  // suffixIcon: Icon(Icons.search,color: Colors.white,)),
-            ),
+                fillColor: Color(0x801b1b1b),
+                filled: true,
+                focusedBorder: InputBorder.none,
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: Colors.white),
+              ),
               primarySwatch: Colors.blue,
             ),
             initialRoute: '/',
@@ -83,7 +80,7 @@ class WallHaven extends StatelessWidget {
               '/pictureViews': (context) => const PictureViews(),
               '/account': (context) => const Account(),
               '/login': (context) => const Login(),
-              '/search':(context) => const SearchBarDemo(),
+              // '/search':(context) => const SearchBarDemo(),
             },
             home: StoreBuilder<MainState>(
               builder: (BuildContext context, Store<MainState> store) =>
@@ -104,16 +101,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int currentIndex = 0;
+  int pageIndex = 0;
   PageController _controller = PageController();
 
   @override
   void initState() {
-    _controller = PageController(initialPage: currentIndex, keepPage: true);
+    _controller = PageController(initialPage: pageIndex, keepPage: true);
     super.initState();
   }
 
-  void _onItemTapped(int index, Function callback) async {
+  void _onPageChanged(int index, Function callback) async {
     // if (index == 2 || index == 3) {
     //   final prefs = await SharedPreferences.getInstance();
     //   String? rememberCookie = prefs.getString('remember_web');
@@ -127,7 +124,23 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset:false,
+        resizeToAvoidBottomInset: false,
+        drawer: GFDrawer(
+          elevation: 0,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: const <Widget>[
+              ListTile(
+                title: Text('Item 1'),
+                onTap: null,
+              ),
+              ListTile(
+                title: Text('Item 2'),
+                onTap: null,
+              ),
+            ],
+          ),
+        ),
         bottomNavigationBar: BottomNavigationBar(
             items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
@@ -148,9 +161,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
             type: BottomNavigationBarType.fixed,
-            currentIndex: currentIndex,
+            currentIndex: pageIndex,
             selectedItemColor: Colors.pinkAccent[100],
-            onTap: (index) => _onItemTapped(
+            onTap: (index) => _onPageChanged(
                 index,
                 (flag) => flag
                     ? Navigator.pushNamed(context, '/login')
@@ -170,15 +183,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   return PageView(
                     // physics: const NeverScrollableScrollPhysics(),
                     controller: _controller,
-                    onPageChanged: (index) => _onItemTapped(index, (flag) {
+                    onPageChanged: (index) => _onPageChanged(index, (flag) {
                       if (flag) {
                         Navigator.pushNamed(context, '/login');
                         Timer(const Duration(milliseconds: 500), () {
-                          _controller.jumpToPage(currentIndex);
+                          _controller.jumpToPage(pageIndex);
                         });
                       } else {
                         setState(() {
-                          currentIndex = index;
+                          pageIndex = index;
                         });
                       }
                     }),

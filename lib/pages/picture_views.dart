@@ -4,10 +4,9 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/main.dart' show WallImage;
 import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/store/index.dart';
-import 'package:wallhevan/store/searchResult/picture_info.dart';
+import 'package:wallhevan/store/search_result/picture_info.dart';
 
 class PictureViews extends StatelessWidget {
-
   const PictureViews({super.key});
 
   List<PictureInfo> getPicture(MainState state) {
@@ -70,6 +69,10 @@ class PictureViews extends StatelessWidget {
                   },
                   itemCount: pictures.length,
                   onPageChanged: (int index) {
+                    hAction.store.dispatch({
+                      'type': StoreActions.updatePic,
+                      'url': pictures[index].path
+                    });
                     if (index >= pictures.length - 2) {
                       hAction.loadMore(mainState.viewType);
                     }
