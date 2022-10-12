@@ -106,6 +106,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int pageIndex = 0;
   PageController _controller = PageController();
 
+  final ScrollController _scrollController = ScrollController(keepScrollOffset: false);
+
   @override
   void initState() {
     _controller = PageController(initialPage: pageIndex, keepPage: true);
@@ -119,6 +121,9 @@ class _MyHomePageState extends State<MyHomePage> {
     //   callback(rememberCookie == null);
     //   return;
     // }
+    if(pageIndex == index && index == 0){
+      _scrollController.animateTo(0, duration: const Duration(milliseconds: 200), curve:Curves.ease);
+    }
     callback(false);
     // store.dispatch({'type': StoreActions.selectBottomNav, 'data': index});
   }
@@ -187,12 +192,12 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             }
           }),
-          children: const [
-            HomePage(),
+          children:  [
+            HomePage(scrollController: _scrollController),
             // SliverAppBarExample(),
-            SearchPage(),
-            FavoritesPage(),
-            Account()
+            const SearchPage(),
+            const FavoritesPage(),
+            const Account()
           ],
         )));
   }

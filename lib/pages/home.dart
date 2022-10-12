@@ -5,8 +5,9 @@ import 'package:wallhevan/pages/picture_list.dart';
 import '../store/index.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.scrollController});
 
+  final ScrollController scrollController;
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -89,8 +90,6 @@ class _HomePageState extends State<HomePage> {
 
   String keyword = '';
 
-  final ScrollController controller = ScrollController(keepScrollOffset: false);
-
   void setKeyword(String value) {
     setState(() {
       keyword = value;
@@ -111,7 +110,7 @@ class _HomePageState extends State<HomePage> {
           converter: (store) => HandleActions(store),
           builder: (context, hAction) {
             return NestedScrollView(
-              controller: controller,
+              controller: widget.scrollController,
               headerSliverBuilder: (context, sel) {
                 return <Widget>[
                   SliverAppBar(
@@ -176,7 +175,7 @@ class _HomePageState extends State<HomePage> {
                 ];
               },
               body: PictureList(
-                  viewType: StoreActions.viewList, controller: controller),
+                  viewType: StoreActions.viewList),
             );
           },
         ));

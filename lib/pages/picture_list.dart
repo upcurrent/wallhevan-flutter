@@ -9,11 +9,9 @@ import '../store/index.dart';
 
 class PictureList extends StatefulWidget {
   const PictureList(
-      {super.key, required this.viewType, this.keepAlive, this.controller});
+      {super.key, required this.viewType, this.keepAlive});
 
   final StoreActions viewType;
-
-  final ScrollController? controller;
 
   final bool? keepAlive;
 
@@ -59,7 +57,6 @@ class _PictureListState extends State<PictureList>
               return false;
             },
             child: MasonryGridView.count(
-              // controller: widget.controller,
               padding: EdgeInsets.zero,
               crossAxisCount: 2,
               itemCount: pictures.length,
