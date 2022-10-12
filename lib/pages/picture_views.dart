@@ -4,19 +4,13 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/main.dart' show WallImage;
 import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/store/index.dart';
-import 'package:wallhevan/store/search_result/picture_info.dart';
+import 'package:wallhevan/store/model_view/picture_list_model.dart';
+import 'package:wallhevan/store/search_response/picture_info.dart';
+
+import 'global_theme.dart';
 
 class PictureViews extends StatelessWidget {
   const PictureViews({super.key});
-
-  List<PictureInfo> getPicture(MainState state) {
-    switch (state.viewType) {
-      case StoreActions.viewFav:
-        return state.favPictureList;
-      default:
-        return state.imageDataList;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,46 +35,44 @@ class PictureViews extends StatelessWidget {
             //   rebuildSwiper.add(_showSwiper);
             // }
           },
-          child: StoreConnector<MainState, HandleActions>(
+          child: StoreConnector<MainState, PictureListModel>(
               distinct: true,
-              converter: (store) => HandleActions(store),
-              builder: (context, hAction) {
-                MainState mainState = hAction.getMainState();
-                List<PictureInfo> pictures = getPicture(mainState);
-                return ExtendedImageGesturePageView.builder(
-                  itemBuilder: (BuildContext context, int index) {
-                    var item = pictures[index].path;
-                    Widget image = PictureComp(
-                        image: pictures[index],
-                        type: WallImage.fullSizePicture,
-                        url: pictures[index].path);
-                    image = Container(
-                      padding: const EdgeInsets.all(5.0),
-                      child: image,
-                    );
-                    if (index == mainState.currentIndex) {
-                      return Hero(
-                        tag: item + index.toString(),
+              converter: (store) => PictureListModel.listFromStore(store,store.state.viewType),
+              builder: (context, pictureView) {
+                List<PictureInfo> pictures = pictureView.pictures;
+                return GlobalTheme.backImg(
+                  ExtendedImageGesturePageView.builder(
+                    itemBuilder: (BuildContext context, int index) {
+                      var item = pictures[index].path;
+                      Widget image = PictureComp(
+                          image: pictures[index],
+                          type: WallImage.fullSizePicture,
+                          url: pictures[index].path);
+                      image = Container(
+                        padding: const EdgeInsets.all(5.0),
                         child: image,
                       );
-                    } else {
-                      return image;
-                    }
-                  },
-                  itemCount: pictures.length,
-                  onPageChanged: (int index) {
-                    hAction.store.dispatch({
-                      'type': StoreActions.updatePic,
-                      'url': pictures[index].path
-                    });
-                    if (index >= pictures.length - 2) {
-                      hAction.loadMore(mainState.viewType);
-                    }
-                  },
-                  controller: ExtendedPageController(
-                    initialPage: mainState.currentIndex,
+                      if (index == pictureView.currentIndex) {
+                        return Hero(
+                          tag: item + index.toString(),
+                          child: image,
+                        );
+                      } else {
+                        return image;
+                      }
+                    },
+                    itemCount: pictures.length,
+                    onPageChanged: (int index) {
+                      pictureView.updatePic(index);
+                      if (index >= pictures.length - 2) {
+                        pictureView.loadMore();
+                      }
+                    },
+                    controller: ExtendedPageController(
+                      initialPage: pictureView.currentIndex,
+                    ),
+                    scrollDirection: Axis.horizontal,
                   ),
-                  scrollDirection: Axis.horizontal,
                 );
               })),
     );

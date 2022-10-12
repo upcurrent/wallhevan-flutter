@@ -1,5 +1,4 @@
 import 'uploader.dart';
-import '../search_result/thumbs.dart';
 import 'tags.dart';
 
 class PictureData {
@@ -22,7 +21,6 @@ class PictureData {
       required this.createdAt,
       required this.colors,
       required this.path,
-      required this.thumbs,
       required this.tags,});
 
   factory PictureData.fromJson(dynamic json) {
@@ -51,7 +49,6 @@ class PictureData {
       createdAt : json['created_at'],
       colors : json['colors'] != null ? json['colors'].cast<String>() : [],
       path : json['path'],
-      thumbs : json['thumbs'],
       tags:tags,
     );
   }
@@ -73,7 +70,6 @@ class PictureData {
   String createdAt;
   List<String> colors;
   String path;
-  Thumbs? thumbs;
   List<Tags> tags;
 
   Map<String, dynamic> toJson() {
@@ -98,9 +94,6 @@ class PictureData {
     map['created_at'] = createdAt;
     map['colors'] = colors;
     map['path'] = path;
-    if (thumbs != null) {
-      map['thumbs'] = thumbs!.toJson();
-    }
     map['tags'] = tags.map((v) => v.toJson()).toList();
     return map;
   }

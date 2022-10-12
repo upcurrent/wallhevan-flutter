@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:wallhevan/store/index.dart';
-import 'package:wallhevan/store/search_result/thumbs.dart';
+import 'package:wallhevan/store/search_response/thumbs.dart';
 
 import '../main.dart' show WallImage;
-import '../store/search_result/picture_info.dart';
+import '../store/picture_res/picture_data.dart';
+import '../store/search_response/picture_info.dart';
 
 class PictureComp extends StatefulWidget {
   final double? pHeight;
@@ -106,9 +107,21 @@ class _PictureCompState extends State<PictureComp> {
   // String url = '';
   BoxFit fit = BoxFit.fitWidth;
 
+  late PictureData pictureData;
+
   @override
   void initState() {
     super.initState();
+    if (widget.type == WallImage.fullSizePicture) {
+      getPictureInfo(widget.image.id).then((res) {
+        if (mounted && res.data != null) {
+          setState(() {
+            pictureData = res.data!;
+          });
+        }
+      });
+    }
+
     setState(() {
       // url = widget.type == WallImage.fullSizePicture
       //     ? widget.image.path
@@ -123,12 +136,48 @@ class _PictureCompState extends State<PictureComp> {
   Widget build(BuildContext context) {
     return Container(
         height: widget.pHeight,
-        // width: pWidth,
         width: widget.halfWidth,
         padding: const EdgeInsets.all(2),
         child: StoreConnector<MainState, HandleActions>(
           converter: (store) => HandleActions(store),
           builder: (context, hAction) {
+            if (widget.type == WallImage.fullSizePicture) {
+              return ExtendedImage.network(
+                widget.url,
+                fit: fit,
+                cache: true,
+                loadStateChanged: (ExtendedImageState state) {
+                  switch (state.extendedImageLoadState) {
+                    case LoadState.loading:
+                      Thumbs? thumbs = widget.image.thumbs;
+                      return ExtendedImage.network(
+                        thumbs.original!,
+                        width: double.infinity,
+                        fit: BoxFit.fitWidth,
+                      );
+                    case LoadState.completed:
+                      return null;
+                    case LoadState.failed:
+                      return null;
+                  }
+                },
+                mode: ExtendedImageMode.gesture,
+                initGestureConfigHandler: (state) {
+                  return GestureConfig(
+                    minScale: 0.9,
+                    animationMinScale: 0.7,
+                    maxScale: 3.0,
+                    animationMaxScale: 3.5,
+                    speed: 1.0,
+                    inertialSpeed: 100.0,
+                    initialScale: 1.0,
+                    inPageView: true,
+                    initialAlignment: InitialAlignment.center,
+                  );
+                },
+                //cancelToken: cancellationToken,
+              );
+            }
             return ExtendedImage.network(
               widget.url,
               fit: fit,
@@ -136,15 +185,6 @@ class _PictureCompState extends State<PictureComp> {
               loadStateChanged: (ExtendedImageState state) {
                 switch (state.extendedImageLoadState) {
                   case LoadState.loading:
-                    if (widget.type == WallImage.fullSizePicture) {
-                      // double halfWidth = MediaQuery.of(context).size.width;
-                      Thumbs? thumbs = widget.image.thumbs;
-                      return ExtendedImage.network(
-                        thumbs.original!,
-                        width: double.infinity,
-                        fit: BoxFit.fitWidth,
-                      );
-                    }
                     return Shimmer(
                       duration: const Duration(seconds: 2), //Default value
                       color: const Color.fromRGBO(
@@ -162,24 +202,7 @@ class _PictureCompState extends State<PictureComp> {
                     return null;
                 }
               },
-              mode: widget.type == WallImage.previewPicture
-                  ? ExtendedImageMode.none
-                  : ExtendedImageMode.gesture,
-              initGestureConfigHandler: widget.type == WallImage.previewPicture
-                  ? null
-                  : (state) {
-                      return GestureConfig(
-                        minScale: 0.9,
-                        animationMinScale: 0.7,
-                        maxScale: 3.0,
-                        animationMaxScale: 3.5,
-                        speed: 1.0,
-                        inertialSpeed: 100.0,
-                        initialScale: 1.0,
-                        inPageView: true,
-                        initialAlignment: InitialAlignment.center,
-                      );
-                    },
+              mode: ExtendedImageMode.none,
               //cancelToken: cancellationToken,
             );
           },

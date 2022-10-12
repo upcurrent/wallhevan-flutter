@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -6,12 +5,12 @@ import 'package:redux/redux.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
-import 'package:wallhevan/store/collections/collection_list_data.dart';
+import 'package:wallhevan/store/collections/fav_data.dart';
 import 'package:wallhevan/store/collections/collections.dart';
 import 'package:wallhevan/store/picture_res/picture_res.dart';
-import 'package:wallhevan/store/search_result/search_result.dart';
-import 'collections/collection_list.dart';
-import 'search_result/picture_info.dart';
+import 'package:wallhevan/store/search_response/search_result.dart';
+import 'collections/fav_response.dart';
+import 'search_response/picture_info.dart';
 
 enum StoreActions {
   addAllPictureInfo,
@@ -35,6 +34,7 @@ enum StoreActions {
 }
 
 MainState counterReducer(MainState state, dynamic action) {
+  print(action['type']);
   switch (action['type']) {
     case StoreActions.addAllPictureInfo:
       if (state.pageNum == 2) {
@@ -47,9 +47,6 @@ MainState counterReducer(MainState state, dynamic action) {
         state.imageList.clear();
       }
       state.imageList.addAll(action['data']);
-      break;
-    case StoreActions.addPictureInfo:
-      state.imageDataList.add(action['data']);
       break;
     case StoreActions.addFavPictureList:
       if (state.favPageNum == 2) {
@@ -92,7 +89,7 @@ MainState counterReducer(MainState state, dynamic action) {
 
 void fetchContactorMiddleware(
     Store<MainState> store, action, NextDispatcher next) {
-  print(action['type']);
+  // print(action['type']);
   MainState state = store.state;
   if (action['type'] == StoreActions.init) {
     if (action['viewType'] == StoreActions.viewFav) {
@@ -136,7 +133,7 @@ class MainState {
   final List<Widget> imageList;
   final List<PictureInfo> imageDataList;
   final List<PictureInfo> favPictureList;
-  final List<CollectionListData> favList;
+  final List<FavData> favList;
   final Set<String> cachePic = {};
   int favId = 0;
   bool preview;
@@ -151,15 +148,8 @@ class MainState {
   StoreActions viewType = StoreActions.viewList;
   int favTotal = 0;
   int listTotal = 0;
-  MainState(
-      this.imageList,
-      this.imageDataList,
-      this.preview,
-      this.loading,
-      this.pageNum,
-      this.currentIndex,
-      this.favPictureList,
-      this.favList);
+  MainState(this.imageList, this.imageDataList, this.preview, this.loading,
+      this.pageNum, this.currentIndex, this.favPictureList, this.favList);
 
   factory MainState.initState() =>
       MainState([], [], false, false, 1, 0, [], []);
@@ -187,8 +177,8 @@ class SearchParams {
     'sorting': 'toplist',
     'order': 'desc',
     'page': '1',
-    'q':'',
-    'seed':'',
+    'q': '',
+    'seed': '',
   };
   final Map<String, String> categoriesMap = {
     'general': '1',
@@ -249,10 +239,10 @@ class HandleActions {
         {'type': StoreActions.accountChange, 'data': store.state.account});
   }
 
-  void setParams(Map<String,String> args,{bool search = false}) {
+  void setParams(Map<String, String> args, {bool search = false}) {
     getSearch().params.addAll(args);
     store.dispatch({'type': StoreActions.searchChange});
-    if(search){
+    if (search) {
       store.dispatch({'type': StoreActions.init});
     }
   }
@@ -388,7 +378,7 @@ Future<void> getFavorites(Store<MainState> store) async {
   if (id == 0) return;
   var params = {
     'page': store.state.favPageNum.toString(),
-    'purity': '111',
+    // 'purity': '111',
     'apikey': await StorageManger.getApiKey(),
   };
   store.state.favLoading = true;
@@ -415,15 +405,10 @@ Future<void> getFavorites(Store<MainState> store) async {
   }).catchError((error) => {print(error.toString())});
 }
 
-String getRandomSeed(){
-  List<String> base = 'qwertyuiopasdfghjklzxcvbnm1234567890'.split('');
-  var rng =  Random();
-  return List.generate(6, (_) => base[rng.nextInt(base.length)]).join('');
-}
-
-Future<PictureRes> getPictureInfo(String id) async{
+Future<PictureRes> getPictureInfo(String id) async {
   String apiKey = await StorageManger.getApiKey();
-  Response res = await dio.get('/api/vi/w$id',queryParameters: {'apikey':apiKey});
+  Response res =
+      await dio.get('/api/v1/w/$id', queryParameters: {'apikey': apiKey});
   return PictureRes.fromJson(res.data);
 }
 
@@ -436,11 +421,7 @@ Future<void> getPictureList(Store<MainState> store) async {
   var params = state.search.params;
   params['page'] = store.state.pageNum.toString();
   params['apikey'] = await StorageManger.getApiKey();
-  if(params['sorting'] == 'random'){
-    if(params['seed'] == ''){
-      params['seed'] = getRandomSeed();
-    }
-  }else{
+  if (params['sorting'] != 'random') {
     params['seed'] = '';
   }
   state.loading = true;
@@ -462,6 +443,9 @@ Future<void> getPictureList(Store<MainState> store) async {
     final meta = searchResult.meta;
     if (meta != null) {
       store.state.listTotal = meta.total;
+      if (params['sorting'] == 'random') {
+        params['seed'] = meta.seed;
+      }
     }
     store.dispatch(
         {'type': StoreActions.addAllPictureInfo, 'data': searchResult.data});
@@ -486,9 +470,8 @@ Future<void> getFavList(Store<MainState> store) async {
   )
       .then((response) {
     state.loading = false;
-    CollectionList favList = CollectionList.fromJson(response.data);
-    store.dispatch(
-        {'type': StoreActions.setFavList, 'data': favList.collectionListData});
+    FavoritesRes favList = FavoritesRes.fromJson(response.data);
+    store.dispatch({'type': StoreActions.setFavList, 'data': favList.favData});
     // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }

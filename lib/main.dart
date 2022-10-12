@@ -8,6 +8,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:getwidget/components/drawer/gf_drawer.dart';
 
 import 'package:redux/redux.dart';
+import 'package:wallhevan/pages/global_theme.dart';
 import 'pages/favorites.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
@@ -72,7 +73,8 @@ class WallHaven extends StatelessWidget {
                 border: InputBorder.none,
                 hintStyle: TextStyle(color: Colors.white),
               ),
-              primarySwatch: Colors.blue,
+              primaryColor: const Color(0xff387799),
+              primarySwatch: Colors.teal,
             ),
             initialRoute: '/',
             routes: {
@@ -142,6 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         bottomNavigationBar: BottomNavigationBar(
+            backgroundColor: const Color(0xff387799),
             items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: const Icon(Icons.home),
@@ -162,48 +165,36 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
             type: BottomNavigationBarType.fixed,
             currentIndex: pageIndex,
-            selectedItemColor: Colors.pinkAccent[100],
+            unselectedItemColor: const Color(0xff14303a),
+            selectedItemColor: const Color(0xffffffff),
             onTap: (index) => _onPageChanged(
                 index,
                 (flag) => flag
                     ? Navigator.pushNamed(context, '/login')
                     : _controller.jumpToPage(index))),
-        body: Container(
-            constraints: const BoxConstraints.expand(),
-            decoration: const BoxDecoration(
-                image: DecorationImage(
-              image: AssetImage('images/wallhaven_background.jpg'),
-              fit: BoxFit.none,
-            )),
-            child: StoreConnector<MainState, HandleActions>(
-                distinct: true,
-                converter: (store) => HandleActions(store),
-                onInit: (store) => store.dispatch({'type': StoreActions.init}),
-                builder: (context, hAction) {
-                  return PageView(
-                    // physics: const NeverScrollableScrollPhysics(),
-                    controller: _controller,
-                    onPageChanged: (index) => _onPageChanged(index, (flag) {
-                      if (flag) {
-                        Navigator.pushNamed(context, '/login');
-                        Timer(const Duration(milliseconds: 500), () {
-                          _controller.jumpToPage(pageIndex);
-                        });
-                      } else {
-                        setState(() {
-                          pageIndex = index;
-                        });
-                      }
-                    }),
-                    children: const [
-                      HomePage(),
-                      // SliverAppBarExample(),
-                      SearchPage(),
-                      FavoritesPage(),
-                      Account()
-                    ],
-                  );
-                })));
+        body: GlobalTheme.backImg(PageView(
+          // physics: const NeverScrollableScrollPhysics(),
+          controller: _controller,
+          onPageChanged: (index) => _onPageChanged(index, (flag) {
+            if (flag) {
+              Navigator.pushNamed(context, '/login');
+              Timer(const Duration(milliseconds: 500), () {
+                _controller.jumpToPage(pageIndex);
+              });
+            } else {
+              setState(() {
+                pageIndex = index;
+              });
+            }
+          }),
+          children: const [
+            HomePage(),
+            // SliverAppBarExample(),
+            SearchPage(),
+            FavoritesPage(),
+            Account()
+          ],
+        )));
   }
 }
 

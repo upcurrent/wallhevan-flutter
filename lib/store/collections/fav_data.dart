@@ -1,13 +1,13 @@
-class CollectionListData {
-  CollectionListData({
+class FavData {
+  FavData({
       required this.id,
       required this.label,
       required this.views,
       required this.public,
       required this.count,});
 
-  factory CollectionListData.fromJson(dynamic json) {
-    return CollectionListData(
+  factory FavData.fromJson(dynamic json) {
+    return FavData(
     id : json['id'],
     label : json['label'],
     views : json['views'],

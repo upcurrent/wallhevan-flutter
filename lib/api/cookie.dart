@@ -46,12 +46,12 @@ class HCookieManager extends CookieManager{
           handler.resolve(err.response!);
           return;
         }
-        var _err = DioError(
+        var nErr = DioError(
           requestOptions: err.response!.requestOptions,
           error: e,
         );
-        _err.stackTrace = stackTrace;
-        handler.next(_err);
+        nErr.stackTrace = stackTrace;
+        handler.next(nErr);
       });
     } else {
       handler.next(err);

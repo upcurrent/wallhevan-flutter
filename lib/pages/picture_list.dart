@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:wallhevan/store/search_result/picture_info.dart';
+import 'package:wallhevan/store/model_view/picture_list_model.dart';
+import 'package:wallhevan/store/search_response/picture_info.dart';
 
 import '../component/picture_comp.dart';
 import '../store/index.dart';
 
 class PictureList extends StatefulWidget {
-  const PictureList({super.key, required this.viewType, this.keepAlive, this.controller});
+  const PictureList(
+      {super.key, required this.viewType, this.keepAlive, this.controller});
 
   final StoreActions viewType;
 
@@ -31,26 +33,27 @@ class _PictureListState extends State<PictureList>
         return state.imageDataList;
     }
   }
-
+  int listLength = 0;
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return StoreConnector<MainState, HandleActions>(
+    print(333333);
+    return StoreConnector<MainState, PictureListModel>(
         distinct: true,
-        converter: (store) => HandleActions(store),
+        ignoreChange: (model){
+          return model.imageDataList.length != listLength;
+        },
+        converter: (store) =>
+            PictureListModel.listFromStore(store, widget.viewType),
         onInit: (store) => store
             .dispatch({'type': StoreActions.init, 'viewType': widget.viewType}),
-        builder: (context, hAction) {
-          MainState mainState = hAction.getMainState();
-          List<PictureInfo> pictures = getPicture(mainState);
+        builder: (context, pictureModel) {
+          List<PictureInfo> pictures = pictureModel.pictures;
           return NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
               if (scrollInfo.metrics.pixels >=
                   scrollInfo.metrics.maxScrollExtent - 400) {
-                hAction.store.dispatch({
-                  'type': StoreActions.loadMore,
-                  'viewType': widget.viewType
-                });
+                pictureModel.loadMore();
                 return true;
               }
               return false;
@@ -65,20 +68,22 @@ class _PictureListState extends State<PictureList>
                 String path = pictures[index].path;
                 PictureComp pictureComp =
                     PictureComp.create(context, pictures[index], url);
-
                 return GestureDetector(
                     onTap: () {
-                      hAction.store.dispatch({
-                        'type': StoreActions.preview,
-                        'viewType': widget.viewType,
-                        'currentIndex': index,
-                        'url': pictures[index].path
+                      pictureModel.preview(index);
+                      setState(() {
+                        listLength = pictures.length;
                       });
                       Navigator.pushNamed(context, '/pictureViews');
                     },
-                    child: hAction.hasCache(path)
-                        ? PictureComp.create(context, pictures[index], path)
-                        : pictureComp);
+                    child: StoreConnector<MainState, Set>(
+                      converter: (store) => store.state.cachePic,
+                      builder: (context, cache) {
+                        return cache.contains(path)
+                            ? PictureComp.create(context, pictures[index], path)
+                            : pictureComp;
+                      },
+                    ));
               },
             ),
           );

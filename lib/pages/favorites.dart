@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:wallhevan/pages/global_theme.dart';
 import 'package:wallhevan/pages/picture_list.dart';
 import 'package:wallhevan/pages/search.dart';
 import 'package:wallhevan/store/index.dart';
@@ -39,14 +40,17 @@ class _FavoritesPageState extends State<FavoritesPage> {
       converter: (store) => HandleActions(store),
       onInit: (store) => store.dispatch({'type': StoreActions.initFav}),
       builder: (context, hAction) {
-        return Scaffold(
+        return GlobalTheme.backImg(Scaffold(
+          backgroundColor: Colors.transparent,
           body: NestedScrollView(
               headerSliverBuilder: (context, sel) {
                 return <Widget>[
                   SliverAppBar(
+                    elevation: 0,
                     pinned: false,
                     snap: false,
                     floating: false,
+                    backgroundColor: Colors.transparent,
                     title: Row(
                       children: getBtn(hAction),
                     ),
@@ -57,7 +61,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 viewType: StoreActions.viewFav,
                 keepAlive: false,
               )),
-        );
+        ));
       },
     );
   }

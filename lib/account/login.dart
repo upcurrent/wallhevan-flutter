@@ -17,7 +17,6 @@ class Login extends StatelessWidget {
                 onInitialBuild: (hAction){
                   hAction.getToken('/login');
                 },
-                distinct: true,
                 converter: (store){
                   var hAction = HandleActions(store);
                   // hAction.getToken();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wallhevan/main.dart' show WallImage;
 import 'package:wallhevan/component/picture_comp.dart';
 
-import '../store/search_result/picture_info.dart';
+import '../store/search_response/picture_info.dart';
 
 class Picture extends StatelessWidget {
   const Picture({super.key});
