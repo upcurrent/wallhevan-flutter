@@ -6,7 +6,6 @@ import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/search_response/thumbs.dart';
 
-import '../main.dart' show WallImage;
 import '../store/picture_res/picture_data.dart';
 import '../store/search_response/picture_info.dart';
 
@@ -16,6 +15,8 @@ class PictureComp extends StatefulWidget {
   final PictureInfo image;
   final int type;
   final String url;
+  static const int previewPicture = 1;
+  static const int fullSizePicture = 2;
   const PictureComp(
       {super.key,
       required this.image,
@@ -42,95 +43,16 @@ class PictureComp extends StatefulWidget {
       pHeight: height,
       halfWidth: width,
       image: picture,
-      type: WallImage.previewPicture,
+      type: previewPicture,
       url: url,
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Container(
-  //       height: pHeight,
-  //       // width: pWidth,
-  //       width: halfWidth,
-  //       padding: const EdgeInsets.all(2),
-  //       child: ExtendedImage.network(
-  //         type == WallImage.fullSizePicture ? image.path : image.thumbs!.original!,
-  //         fit: type == WallImage.fullSizePicture ? BoxFit.scaleDown : BoxFit.fitWidth,
-  //         cache: true,
-  //         loadStateChanged: (ExtendedImageState state){
-  //           switch(state.extendedImageLoadState){
-  //             case LoadState.loading:
-  //               if(type == WallImage.fullSizePicture){
-  //                 // double halfWidth = MediaQuery.of(context).size.width;
-  //                 return ExtendedImage.network(image.thumbs!.original!,width: double.infinity,fit: BoxFit.fitWidth,);
-  //               }
-  //               return Shimmer(
-  //                 duration: const Duration(seconds: 2), //Default value
-  //                 color: const Color.fromRGBO(112, 142, 122,1), //Default value
-  //                 enabled: true, //Default value
-  //                 direction: const ShimmerDirection.fromLeftToRight(),  //Default Value
-  //                 child: Container(
-  //                   color: const Color.fromRGBO(230, 230, 230,1),
-  //                 ),
-  //               );
-  //             case LoadState.completed:
-  //               return null;
-  //             case LoadState.failed:
-  //               return null;
-  //           }
-  //         },
-  //         mode: type == WallImage.previewPicture ? ExtendedImageMode.none : ExtendedImageMode.gesture,
-  //         initGestureConfigHandler: type == WallImage.previewPicture ? null : (state) {
-  //           return GestureConfig(
-  //             minScale: 0.9,
-  //             animationMinScale: 0.7,
-  //             maxScale: 3.0,
-  //             animationMaxScale: 3.5,
-  //             speed: 1.0,
-  //             inertialSpeed: 100.0,
-  //             initialScale: 1.0,
-  //             inPageView: true,
-  //             initialAlignment: InitialAlignment.center,
-  //           );
-  //         },
-  //         //cancelToken: cancellationToken,
-  //       )
-  //   );
-  // }
 
   @override
   State<StatefulWidget> createState() => _PictureCompState();
 }
 
 class _PictureCompState extends State<PictureComp> {
-  // String url = '';
-  BoxFit fit = BoxFit.fitWidth;
-
-  late PictureData pictureData;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.type == WallImage.fullSizePicture) {
-      getPictureInfo(widget.image.id).then((res) {
-        if (mounted && res.data != null) {
-          setState(() {
-            pictureData = res.data!;
-          });
-        }
-      });
-    }
-
-    setState(() {
-      // url = widget.type == WallImage.fullSizePicture
-      //     ? widget.image.path
-      //     : widget.image.thumbs.original!;
-      fit = widget.type == WallImage.fullSizePicture
-          ? BoxFit.scaleDown
-          : BoxFit.fitWidth;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,13 +60,10 @@ class _PictureCompState extends State<PictureComp> {
         height: widget.pHeight,
         width: widget.halfWidth,
         padding: const EdgeInsets.all(2),
-        child: StoreConnector<MainState, HandleActions>(
-          converter: (store) => HandleActions(store),
-          builder: (context, hAction) {
-            if (widget.type == WallImage.fullSizePicture) {
-              return ExtendedImage.network(
+        child: widget.type == PictureComp.fullSizePicture
+            ? ExtendedImage.network(
                 widget.url,
-                fit: fit,
+                fit: BoxFit.scaleDown,
                 cache: true,
                 loadStateChanged: (ExtendedImageState state) {
                   switch (state.extendedImageLoadState) {
@@ -176,36 +95,33 @@ class _PictureCompState extends State<PictureComp> {
                   );
                 },
                 //cancelToken: cancellationToken,
-              );
-            }
-            return ExtendedImage.network(
-              widget.url,
-              fit: fit,
-              cache: true,
-              loadStateChanged: (ExtendedImageState state) {
-                switch (state.extendedImageLoadState) {
-                  case LoadState.loading:
-                    return Shimmer(
-                      duration: const Duration(seconds: 2), //Default value
-                      color: const Color.fromRGBO(
-                          112, 142, 122, 1), //Default value
-                      enabled: true, //Default value
-                      direction: const ShimmerDirection
-                          .fromLeftToRight(), //Default Value
-                      child: Container(
-                        color: const Color.fromRGBO(230, 230, 230, 1),
-                      ),
-                    );
-                  case LoadState.completed:
-                    return null;
-                  case LoadState.failed:
-                    return null;
-                }
-              },
-              mode: ExtendedImageMode.none,
-              //cancelToken: cancellationToken,
-            );
-          },
-        ));
+              )
+            : ExtendedImage.network(
+                widget.url,
+                fit: BoxFit.fitWidth,
+                cache: true,
+                loadStateChanged: (ExtendedImageState state) {
+                  switch (state.extendedImageLoadState) {
+                    case LoadState.loading:
+                      return Shimmer(
+                        duration: const Duration(seconds: 2), //Default value
+                        color: const Color.fromRGBO(
+                            112, 142, 122, 1), //Default value
+                        enabled: true, //Default value
+                        direction: const ShimmerDirection
+                            .fromLeftToRight(), //Default Value
+                        child: Container(
+                          color: const Color.fromRGBO(230, 230, 230, 1),
+                        ),
+                      );
+                    case LoadState.completed:
+                      return null;
+                    case LoadState.failed:
+                      return null;
+                  }
+                },
+                mode: ExtendedImageMode.none,
+                //cancelToken: cancellationToken,
+              ));
   }
 }

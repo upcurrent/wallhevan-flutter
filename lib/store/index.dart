@@ -26,6 +26,7 @@ enum StoreActions {
   selectBottomNav,
   accountChange,
   searchChange,
+  homeScrollTop,
   init,
   initFav,
   loadMore,
@@ -83,6 +84,8 @@ MainState counterReducer(MainState state, dynamic action) {
     case StoreActions.updatePic:
       state.cachePic.add(action['url']);
       break;
+    case StoreActions.homeScrollTop:
+      state.homeScrollTop();
   }
   return state;
 }
@@ -135,6 +138,7 @@ class MainState {
   final List<PictureInfo> favPictureList;
   final List<FavData> favList;
   final Set<String> cachePic = {};
+  final ScrollController homeScrollCtrl = ScrollController(keepScrollOffset: false);
   int favId = 0;
   bool preview;
   bool loading;
@@ -160,6 +164,9 @@ class MainState {
 
   void addPictureWidget(Widget widget) {
     imageList.add(widget);
+  }
+  void homeScrollTop(){
+    homeScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 200), curve:Curves.ease);
   }
 }
 

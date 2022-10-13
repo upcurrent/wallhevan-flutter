@@ -31,18 +31,13 @@ class _PictureListState extends State<PictureList>
         return state.imageDataList;
     }
   }
-  int listLength = 0;
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    print(333333);
     return StoreConnector<MainState, PictureListModel>(
         distinct: true,
-        ignoreChange: (model){
-          return model.imageDataList.length != listLength;
-        },
         converter: (store) =>
-            PictureListModel.listFromStore(store, widget.viewType),
+            PictureListModel.formStore(store, widget.viewType),
         onInit: (store) => store
             .dispatch({'type': StoreActions.init, 'viewType': widget.viewType}),
         builder: (context, pictureModel) {
@@ -68,9 +63,6 @@ class _PictureListState extends State<PictureList>
                 return GestureDetector(
                     onTap: () {
                       pictureModel.preview(index);
-                      setState(() {
-                        listLength = pictures.length;
-                      });
                       Navigator.pushNamed(context, '/pictureViews');
                     },
                     child: StoreConnector<MainState, Set>(

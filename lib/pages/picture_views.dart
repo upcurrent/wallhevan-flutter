@@ -1,7 +1,6 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:wallhevan/main.dart' show WallImage;
 import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/model_view/picture_list_model.dart';
@@ -11,6 +10,19 @@ import 'global_theme.dart';
 
 class PictureViews extends StatelessWidget {
   const PictureViews({super.key});
+
+  // late PictureData pictureData;
+  //
+  // void getPictureData(String id) {
+  //     getPictureInfo(id).then((res) {
+  //       if (mounted && res.data != null) {
+  //         setState(() {
+  //           pictureData = res.data!;
+  //         });
+  //       }
+  //     });
+  // }
+
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +49,7 @@ class PictureViews extends StatelessWidget {
           },
           child: StoreConnector<MainState, PictureListModel>(
               distinct: true,
-              converter: (store) => PictureListModel.listFromStore(store,store.state.viewType),
+              converter: (store) => PictureListModel.formStore(store,store.state.viewType),
               builder: (context, pictureView) {
                 List<PictureInfo> pictures = pictureView.pictures;
                 return GlobalTheme.backImg(
@@ -46,8 +58,14 @@ class PictureViews extends StatelessWidget {
                       var item = pictures[index].path;
                       Widget image = PictureComp(
                           image: pictures[index],
-                          type: WallImage.fullSizePicture,
+                          type: PictureComp.fullSizePicture,
                           url: pictures[index].path);
+                      image = Column(
+                        children: [
+                          image,
+
+                        ],
+                      );
                       image = Container(
                         padding: const EdgeInsets.all(5.0),
                         child: image,

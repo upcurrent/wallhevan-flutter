@@ -3,21 +3,17 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/pages/picture_list.dart';
 
 import '../store/index.dart';
+import '../store/model_view/home_model.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.scrollController});
+  const HomePage({super.key});
 
-  final ScrollController scrollController;
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Widget> cartList(HandleActions hAction) {
-    void setSorting(String value) {
-      hAction.setParams({'sorting': value}, search: true);
-    }
-
+  List<Widget> cartList(HomeModel home) {
     const BoxDecoration decoration = BoxDecoration(
         gradient: LinearGradient(
       begin: Alignment.topCenter,
@@ -41,39 +37,28 @@ class _HomePageState extends State<HomePage> {
 
     Padding card(Text text, Image image, String value) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-        child: StoreConnector<MainState, VoidCallback>(converter: (store) {
-          return () =>
-              HandleActions(store).setParams({'sorting': value}, search: true);
-        }, builder: (context, params) {
-          return GestureDetector(
-            onTap: () => setSorting(value),
-            child: StoreConnector<MainState, Map>(
-              converter: (store) => store.state.search.params,
-              builder: (context, params) {
-                return Container(
-                  decoration:
-                      params['sorting'] == value ? selDecoration : decoration,
-                  height: 120,
-                  width: 120,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                        height: 32,
-                        width: 32,
-                        child: image,
-                      ),
-                      text,
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        }),
-      );
+          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+          child: GestureDetector(
+              onTap: () => home.setParams({'sorting': value}, init: true),
+              child: Container(
+                decoration: home.params['sorting'] == value
+                    ? selDecoration
+                    : decoration,
+                height: 120,
+                width: 120,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    SizedBox(
+                      height: 32,
+                      width: 32,
+                      child: image,
+                    ),
+                    text,
+                  ],
+                ),
+              )));
     }
 
     return [
@@ -88,7 +73,12 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
+  final ScrollController scrollController =
+      ScrollController(keepScrollOffset: false);
+
   String keyword = '';
+
+  void scrollTop() {}
 
   void setKeyword(String value) {
     setState(() {
@@ -96,21 +86,21 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _onReduxChange(HandleActions? old, HandleActions now) {
-    // print(old);
-    // print(now);
-  }
+  // void _onReduxChange(HandleActions? old, HandleActions now) {
+  //   // print(old);
+  //   // print(now);
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Container(
         constraints: const BoxConstraints.expand(),
-        child: StoreConnector<MainState, HandleActions>(
-          onWillChange: _onReduxChange,
-          converter: (store) => HandleActions(store),
-          builder: (context, hAction) {
+        child: StoreConnector<MainState, HomeModel>(
+          // onWillChange: _onReduxChange,
+          converter: (store) => HomeModel.fromStore(store),
+          builder: (context, home) {
             return NestedScrollView(
-              controller: widget.scrollController,
+              controller: home.homeScrollCtrl,
               headerSliverBuilder: (context, sel) {
                 return <Widget>[
                   SliverAppBar(
@@ -129,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                           width: double.infinity,
                           child: ListView(
                             scrollDirection: Axis.horizontal, //方向
-                            children: cartList(hAction),
+                            children: cartList(home),
                           ),
                         ),
                         Padding(
@@ -144,11 +134,11 @@ class _HomePageState extends State<HomePage> {
                               cursorColor: Colors.white,
                               style: const TextStyle(color: Colors.white),
                               onSubmitted: (value) {
-                                hAction.setParams(
+                                home.setParams(
                                     value != ''
                                         ? {'q': value, 'sorting': "relevance"}
                                         : {'q': value},
-                                    search: true);
+                                    init: true);
                                 setKeyword(value);
                               },
                               decoration: InputDecoration(
@@ -174,8 +164,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 ];
               },
-              body: PictureList(
-                  viewType: StoreActions.viewList),
+              body: const PictureList(viewType: StoreActions.viewList),
             );
           },
         ));
