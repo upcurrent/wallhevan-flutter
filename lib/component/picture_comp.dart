@@ -64,6 +64,7 @@ class _PictureCompState extends State<PictureComp> {
             ? ExtendedImage.network(
                 widget.url,
                 fit: BoxFit.scaleDown,
+                // enableSlideOutPage:true,
                 cache: true,
                 loadStateChanged: (ExtendedImageState state) {
                   switch (state.extendedImageLoadState) {
@@ -100,6 +101,7 @@ class _PictureCompState extends State<PictureComp> {
                 widget.url,
                 fit: BoxFit.fitWidth,
                 cache: true,
+                maxBytes:6000,
                 loadStateChanged: (ExtendedImageState state) {
                   switch (state.extendedImageLoadState) {
                     case LoadState.loading:

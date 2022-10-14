@@ -1,11 +1,13 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:getwidget/components/button/gf_button.dart';
 import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/model_view/picture_list_model.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
 
+import '../store/picture_res/picture_data.dart';
 import 'global_theme.dart';
 
 class PictureViews extends StatelessWidget {
@@ -23,13 +25,35 @@ class PictureViews extends StatelessWidget {
   //     });
   // }
 
+  Widget picDataBuild(String id) {
+    return FutureBuilder<PictureData>(
+        future: getPictureInfo(id),
+        builder: (context, AsyncSnapshot<PictureData> snapshot) {
+          var data = snapshot.data;
+          if (data != null) {
+            var tags = data.tags;
+            List<Widget> tagWidgets = [];
+            tagWidgets.addAll(
+                tags.map((tag) => GFButton(text: tag.name, onPressed: () {})));
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Wrap(
+                  children: tagWidgets,
+                )
+              ],
+            );
+          }
+          return Container();
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints.expand(),
       child: ExtendedImageSlidePage(
-          slideAxis: SlideAxis.both,
+          slideAxis: SlideAxis.vertical,
           slideType: SlideType.onlyImage,
           onSlidingPage: (state) {
             ///you can change other widgets' state on page as you want
@@ -49,7 +73,8 @@ class PictureViews extends StatelessWidget {
           },
           child: StoreConnector<MainState, PictureListModel>(
               distinct: true,
-              converter: (store) => PictureListModel.formStore(store,store.state.viewType),
+              converter: (store) =>
+                  PictureListModel.formStore(store, store.state.viewType),
               builder: (context, pictureView) {
                 List<PictureInfo> pictures = pictureView.pictures;
                 return GlobalTheme.backImg(
@@ -60,10 +85,10 @@ class PictureViews extends StatelessWidget {
                           image: pictures[index],
                           type: PictureComp.fullSizePicture,
                           url: pictures[index].path);
-                      image = Column(
+                      image = ListView(
                         children: [
                           image,
-
+                          picDataBuild(pictures[index].id),
                         ],
                       );
                       image = Container(

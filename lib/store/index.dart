@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallhevan/api/api.dart';
 import 'package:wallhevan/store/collections/fav_data.dart';
 import 'package:wallhevan/store/collections/collections.dart';
+import 'package:wallhevan/store/picture_res/picture_data.dart';
 import 'package:wallhevan/store/picture_res/picture_res.dart';
 import 'package:wallhevan/store/search_response/search_result.dart';
 import 'collections/fav_response.dart';
@@ -123,9 +124,12 @@ void fetchContactorMiddleware(
     state.favList.clear();
     state.favList.addAll(action['data']);
     if (state.favList.isNotEmpty) {
-      state.favId = state.favList[0].id;
+      if(state.favId == 0){
+        state.favId = state.favList[0].id;
+      }
       state.favPageNum = 1;
       state.favTotal = 0;
+      state.favLoading = false;
       getFavorites(store);
     }
   }
@@ -412,11 +416,11 @@ Future<void> getFavorites(Store<MainState> store) async {
   }).catchError((error) => {print(error.toString())});
 }
 
-Future<PictureRes> getPictureInfo(String id) async {
+Future<PictureData> getPictureInfo(String id) async {
   String apiKey = await StorageManger.getApiKey();
   Response res =
       await dio.get('/api/v1/w/$id', queryParameters: {'apikey': apiKey});
-  return PictureRes.fromJson(res.data);
+  return PictureRes.fromJson(res.data).data!;
 }
 
 Future<void> getPictureList(Store<MainState> store) async {

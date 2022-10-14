@@ -127,19 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         drawer: GFDrawer(
-          elevation: 0,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: const <Widget>[
-              ListTile(
-                title: Text('Item 1'),
-                onTap: null,
-              ),
-              ListTile(
-                title: Text('Item 2'),
-                onTap: null,
-              ),
-            ],
+          // elevation: 0,
+          child:GlobalTheme.backImg(
+              const SearchPage()
           ),
         ),
         bottomNavigationBar:

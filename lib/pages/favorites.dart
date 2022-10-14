@@ -5,6 +5,8 @@ import 'package:wallhevan/pages/picture_list.dart';
 import 'package:wallhevan/pages/search.dart';
 import 'package:wallhevan/store/index.dart';
 
+import '../store/model_view/favorites_model.dart';
+
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
 
@@ -13,21 +15,16 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  List<Widget> getBtn(HandleActions hAction) {
-    MainState state = hAction.getMainState();
+  List<Widget> getBtn(FavoritesModel favModel) {
     List<Widget> tabs = [];
-    for (var fav in state.favList) {
+    for (var fav in favModel.favList) {
       tabs.add(
         HGFButton(
             type: '0',
             text: fav.label,
-            selected: fav.id == state.favId,
+            selected: fav.id == favModel.favId,
             onSelected: (value) {
-              hAction.store.dispatch({
-                'type': StoreActions.init,
-                'viewType': StoreActions.viewFav,
-                'id': fav.id
-              });
+              favModel.init(fav.id);
             }),
       );
     }
@@ -36,10 +33,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<MainState, HandleActions>(
-      converter: (store) => HandleActions(store),
+    return StoreConnector<MainState, FavoritesModel>(
+      converter: (store) => FavoritesModel.fromStore(store),
       onInit: (store) => store.dispatch({'type': StoreActions.initFav}),
-      builder: (context, hAction) {
+      builder: (context, favModel) {
         return GlobalTheme.backImg(Scaffold(
           backgroundColor: Colors.transparent,
           body: NestedScrollView(
@@ -52,7 +49,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     floating: false,
                     backgroundColor: Colors.transparent,
                     title: Row(
-                      children: getBtn(hAction),
+                      children: getBtn(favModel),
                     ),
                   )
                 ];

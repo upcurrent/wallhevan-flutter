@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:wallhevan/pages/picture_views.dart';
 import 'package:wallhevan/store/model_view/picture_list_model.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
 
@@ -58,19 +59,22 @@ class _PictureListState extends State<PictureList>
               itemBuilder: (context, index) {
                 String url = pictures[index].thumbs.original!;
                 String path = pictures[index].path;
-                PictureComp pictureComp =
-                    PictureComp.create(context, pictures[index], url);
                 return GestureDetector(
                     onTap: () {
                       pictureModel.preview(index);
-                      Navigator.pushNamed(context, '/pictureViews');
+                      // Navigator.push((context))
+                      Navigator.push(
+                        context,
+                            MaterialPageRoute(builder: (_) =>const PictureViews())
+                      );
+                      // Navigator.pushNamed(context, '/pictureViews');
                     },
                     child: StoreConnector<MainState, Set>(
                       converter: (store) => store.state.cachePic,
                       builder: (context, cache) {
                         return cache.contains(path)
                             ? PictureComp.create(context, pictures[index], path)
-                            : pictureComp;
+                            : PictureComp.create(context, pictures[index], url);
                       },
                     ));
               },
