@@ -27,7 +27,7 @@ void main() {
   }
   Store<MainState> store = Store<MainState>(
     counterReducer,
-    initialState: MainState.initState(),
+    initialState: MainState(),
     middleware: [
       fetchContactorMiddleware,
     ],
@@ -67,6 +67,30 @@ class WallHaven extends StatelessWidget {
             // or simply save your changes to "hot reload" in a Flutter IDE).
             // Notice that the counter didn't reset back to zero; the application
             // is not restarted.
+            textTheme: const TextTheme(
+              headline1: TextStyle(
+                  fontSize: 32.0,
+                  color: Colors.white),
+              headline2: TextStyle(
+                  fontSize: 28.0,
+                  color: Colors.white),
+              headline3: TextStyle(
+                  fontSize: 24.0,
+                  color: Colors.white),
+              headline4: TextStyle(
+                  fontSize: 18.0,
+                  color: Colors.white),
+              headline6: TextStyle(
+                  fontSize: 15.0,
+                  color: Colors.white),
+              bodyText1: TextStyle(
+                fontSize: 15.0,
+              ),
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xff387799),
+              iconTheme: IconThemeData(color: Colors.white),
+            ),
             inputDecorationTheme: const InputDecorationTheme(
               fillColor: Color(0x801b1b1b),
               filled: true,
@@ -80,7 +104,7 @@ class WallHaven extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/picture': (context) => const Picture(),
-            '/pictureViews': (context) => const PictureViews(),
+            '/pictureViews': (context) => const PictureViews(back: false,currentIndex: 0,),
             '/account': (context) => const Account(),
             '/login': (context) => const Login(),
             // '/search':(context) => const SearchBarDemo(),
@@ -109,7 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  void _onPageChanged(int index, Function callback,{Function? scrollTop}) async {
+  void _onPageChanged(int index, Function callback,
+      {Function? scrollTop}) async {
     // if (index == 2 || index == 3) {
     //   final prefs = await SharedPreferences.getInstance();
     //   String? rememberCookie = prefs.getString('remember_web');
@@ -128,9 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
         resizeToAvoidBottomInset: false,
         drawer: GFDrawer(
           // elevation: 0,
-          child:GlobalTheme.backImg(
-              const SearchPage()
-          ),
+          child: GlobalTheme.backImg(const SearchPage()),
         ),
         bottomNavigationBar:
             StoreConnector<MainState, MainModel>(converter: (store) {
@@ -161,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
               unselectedItemColor: const Color(0xff14303a),
               selectedItemColor: const Color(0xffffffff),
               onTap: (index) => _onPageChanged(
-                  scrollTop:main.scrollTop,
+                  scrollTop: main.scrollTop,
                   index,
                   (flag) => flag
                       ? Navigator.pushNamed(context, '/login')
@@ -184,7 +207,6 @@ class _MyHomePageState extends State<MyHomePage> {
           }),
           children: const [
             HomePage(),
-            // SliverAppBarExample(),
             SearchPage(),
             FavoritesPage(),
             Account()

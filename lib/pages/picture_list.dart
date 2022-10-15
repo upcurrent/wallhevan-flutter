@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:wallhevan/pages/global_theme.dart';
 import 'package:wallhevan/pages/picture_views.dart';
 import 'package:wallhevan/store/model_view/picture_list_model.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
@@ -9,13 +10,13 @@ import '../component/picture_comp.dart';
 import '../store/index.dart';
 
 class PictureList extends StatefulWidget {
-  const PictureList(
-      {super.key, required this.viewType, this.keepAlive});
+  const PictureList({super.key, required this.viewType, this.keepAlive,this.back = false});
 
-  final StoreActions viewType;
+  final ListType viewType;
 
   final bool? keepAlive;
 
+  final bool back;
   @override
   State<StatefulWidget> createState() {
     return _PictureListState();
@@ -24,18 +25,11 @@ class PictureList extends StatefulWidget {
 
 class _PictureListState extends State<PictureList>
     with AutomaticKeepAliveClientMixin {
-  List<PictureInfo> getPicture(MainState state) {
-    switch (widget.viewType) {
-      case StoreActions.viewFav:
-        return state.favPictureList;
-      default:
-        return state.imageDataList;
-    }
-  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return StoreConnector<MainState, PictureListModel>(
+    return GlobalTheme.backImg(StoreConnector<MainState, PictureListModel>(
         distinct: true,
         converter: (store) =>
             PictureListModel.formStore(store, widget.viewType),
@@ -64,9 +58,9 @@ class _PictureListState extends State<PictureList>
                       pictureModel.preview(index);
                       // Navigator.push((context))
                       Navigator.push(
-                        context,
-                            MaterialPageRoute(builder: (_) =>const PictureViews())
-                      );
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>  PictureViews(back: widget.back,currentIndex: index,viewType: widget.viewType,)));
                       // Navigator.pushNamed(context, '/pictureViews');
                     },
                     child: StoreConnector<MainState, Set>(
@@ -80,7 +74,7 @@ class _PictureListState extends State<PictureList>
               },
             ),
           );
-        });
+        }));
   }
 
   @override

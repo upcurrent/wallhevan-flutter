@@ -55,7 +55,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 ];
               },
               body: const PictureList(
-                viewType: StoreActions.viewFav,
+                viewType: ListType.viewFav,
                 keepAlive: false,
               )),
         ));

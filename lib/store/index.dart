@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
@@ -15,12 +14,11 @@ import 'search_response/picture_info.dart';
 
 enum StoreActions {
   addAllPictureInfo,
+  addAllSearchList,
   addAllWidget,
   addPictureInfo,
   addFavPictureList,
   setFavList,
-  viewFav,
-  viewList,
   loading,
   preview,
   changeIndex,
@@ -35,32 +33,45 @@ enum StoreActions {
   updatePic,
 }
 
+enum ListType {
+  viewFav,
+  viewList,
+  viewSearch,
+}
+
 MainState counterReducer(MainState state, dynamic action) {
   print(action['type']);
   switch (action['type']) {
     case StoreActions.addAllPictureInfo:
-      if (state.pageNum == 2) {
-        state.imageDataList.clear();
+      if (state.listQuery.pageNum == 2) {
+        state.listQuery.list.clear();
       }
-      state.imageDataList.addAll(action['data']);
+      state.listQuery.list.addAll(action['data']);
       break;
-    case StoreActions.addAllWidget:
-      if (state.pageNum == 2) {
-        state.imageList.clear();
-      }
-      state.imageList.addAll(action['data']);
-      break;
+    // case StoreActions.addAllWidget:
+    //   if (state.pageNum == 2) {
+    //     state.imageList.clear();
+    //   }
+    //   state.imageList.addAll(action['data']);
+    //   break;
     case StoreActions.addFavPictureList:
-      if (state.favPageNum == 2) {
-        state.favPictureList.clear();
+      if (state.favQuery.pageNum == 2) {
+        state.favQuery.list.clear();
       }
-      state.favPictureList.addAll(action['data']);
+      state.favQuery.list.addAll(action['data']);
+      break;
+    case StoreActions.addAllSearchList:
+      if (state.filterQuery.pageNum == 2) {
+        state.filterQuery.list.clear();
+      }
+      print(state.filterQuery.pageNum);
+      state.filterQuery.list.addAll(action['data']);
       break;
     case StoreActions.changeIndex:
       state.currentIndex = action['data'];
       break;
     case StoreActions.loading:
-      state.loading = !state.loading;
+      state.listQuery.loading = !state.listQuery.loading;
       break;
     case StoreActions.loadMore:
     case StoreActions.init:
@@ -69,7 +80,6 @@ MainState counterReducer(MainState state, dynamic action) {
     case StoreActions.preview:
       state.currentIndex = action['currentIndex'];
       state.viewType = action['viewType'];
-      state.preview = !state.preview;
       state.cachePic.add(action['url']);
       break;
     case StoreActions.accountChange:
@@ -93,28 +103,48 @@ MainState counterReducer(MainState state, dynamic action) {
 
 void fetchContactorMiddleware(
     Store<MainState> store, action, NextDispatcher next) {
-  // print(action['type']);
   MainState state = store.state;
+  PictureQuery query;
+  switch (action['viewType']) {
+    case ListType.viewFav:
+      query = state.favQuery;
+      break;
+    case ListType.viewSearch:
+      query = state.favQuery;
+      break;
+    default:
+      query = state.listQuery;
+  }
   if (action['type'] == StoreActions.init) {
-    if (action['viewType'] == StoreActions.viewFav) {
-      state.favPageNum = 1;
-      if (action['id'] != null) {
-        state.favId = action['id'];
-        state.favPictureList.clear();
-        state.favTotal = 0;
-        getFavorites(store);
-      }
-    } else {
-      state.pageNum = 1;
-      state.listTotal = 0;
-      getPictureList(store);
+    switch (action['viewType']) {
+      case ListType.viewFav:
+        query.pageNum = 1;
+        if (action['id'] != null) {
+          state.favId = action['id'];
+          query.list.clear();
+          query.total = 0;
+          getFavorites(store);
+        }
+        break;
+      case ListType.viewSearch:
+        getSearchList(store);
+        break;
+      default:
+        query.pageNum = 1;
+        query.total = 0;
+        getPictureList(store);
     }
   }
   if (action['type'] == StoreActions.loadMore) {
-    if (action['viewType'] == StoreActions.viewFav) {
-      getFavorites(store);
-    } else {
-      getPictureList(store);
+    switch (action['viewType']) {
+      case ListType.viewFav:
+        getFavorites(store);
+        break;
+      case ListType.viewSearch:
+        getSearchList(store);
+        break;
+      default:
+        getPictureList(store);
     }
   }
   if (action['type'] == StoreActions.initFav) {
@@ -127,9 +157,9 @@ void fetchContactorMiddleware(
       if(state.favId == 0){
         state.favId = state.favList[0].id;
       }
-      state.favPageNum = 1;
-      state.favTotal = 0;
-      state.favLoading = false;
+      query.pageNum = 1;
+      query.total = 0;
+      query.loading = false;
       getFavorites(store);
     }
   }
@@ -137,50 +167,47 @@ void fetchContactorMiddleware(
 }
 
 class MainState {
-  final List<Widget> imageList;
-  final List<PictureInfo> imageDataList;
-  final List<PictureInfo> favPictureList;
-  final List<FavData> favList;
+  final List<FavData> favList = [];
   final Set<String> cachePic = {};
-  final ScrollController homeScrollCtrl = ScrollController(keepScrollOffset: false);
+  final ScrollController homeScrollCtrl =
+      ScrollController(keepScrollOffset: false);
+  bool loading = false;
   int favId = 0;
-  bool preview;
-  bool loading;
-  bool favLoading = false;
-  int pageNum;
-  int favPageNum = 1;
-  int currentIndex;
+  int currentIndex = 0;
+  final PictureQuery filterQuery = PictureQuery();
+  final PictureQuery listQuery = PictureQuery();
+  final PictureQuery favQuery = PictureQuery();
   UserAccount account = UserAccount();
   SearchParams search = SearchParams();
   bool dioReady = false;
-  StoreActions viewType = StoreActions.viewList;
-  int favTotal = 0;
+  ListType viewType = ListType.viewList;
+  int total = 0;
   int listTotal = 0;
-  MainState(this.imageList, this.imageDataList, this.preview, this.loading,
-      this.pageNum, this.currentIndex, this.favPictureList, this.favList);
-
-  factory MainState.initState() =>
-      MainState([], [], false, false, 1, 0, [], []);
-
-  void addPictureInfo(PictureInfo img) {
-    imageDataList.add(img);
+  int searchTotal = 0;
+  void homeScrollTop() {
+    homeScrollCtrl.animateTo(0,
+        duration: const Duration(milliseconds: 200), curve: Curves.ease);
   }
+}
 
-  void addPictureWidget(Widget widget) {
-    imageList.add(widget);
-  }
-  void homeScrollTop(){
-    homeScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 200), curve:Curves.ease);
+class PictureQuery {
+  bool loading = false;
+  int pageNum = 1;
+  int total = 0;
+  final List<PictureInfo> list = [];
+  static PictureQuery getQuery(MainState state, ListType type) {
+    switch (type) {
+      case ListType.viewFav:
+        return state.favQuery;
+      case ListType.viewSearch:
+        return state.filterQuery;
+      default:
+        return state.listQuery;
+    }
   }
 }
 
 class SearchParams {
-  String categories = '010';
-  String purity = '110';
-  String topRange = '1M';
-  String sorting = 'toplist';
-  String order = 'desc';
-  String keyword = "";
   final Map<String, String> params = {
     'categories': '010',
     'purity': '110',
@@ -196,21 +223,12 @@ class SearchParams {
     'anime': '0',
     'people': '0',
   };
-  final Map<String, String> sortingMap = {
-    'TopList': 'toplist',
-    'Hot': 'hot',
-    'Random': 'random',
-    'Latest': 'date_added',
-    'Views': 'views',
-    'Favorites': 'favorites',
-    'Relevance': 'relevance',
-  };
+
   final Map<String, String> purityMap = {
     'SFW': '1',
     'Sketchy': '0',
     'NSFW': '0',
   };
-  final List<String> topRangeMap = ['1d', '3d', ' 1w', '1M', '3M', '6M', '1y'];
 }
 
 class HandleActions {
@@ -378,25 +396,25 @@ class UserAccount {
 
 enum SearchType { topList, hot, random, latest }
 
-//https://wallhaven.cc/favorites
 Future<void> getFavorites(Store<MainState> store) async {
   MainState state = store.state;
-  if (state.favLoading) return;
-  if (state.favPageNum != 1 && state.favPictureList.length >= state.favTotal) {
+  PictureQuery query = state.favQuery;
+  if (query.loading) return;
+  if (query.pageNum != 1 && query.list.length >= query.total) {
     return;
   }
   int id = store.state.favId;
   if (id == 0) return;
   var params = {
-    'page': store.state.favPageNum.toString(),
-    // 'purity': '111',
+    'page': query.pageNum.toString(),
+    'purity': '111',
     'apikey': await StorageManger.getApiKey(),
   };
-  store.state.favLoading = true;
-  store.state.favPageNum++;
-  if (!store.state.dioReady) {
+  query.loading = true;
+  query.pageNum++;
+  if (!state.dioReady) {
     dio = await initDio();
-    store.state.dioReady = true;
+    state.dioReady = true;
   }
   dio
       .get(
@@ -404,11 +422,11 @@ Future<void> getFavorites(Store<MainState> store) async {
     queryParameters: params,
   )
       .then((response) {
-    store.state.favLoading = false;
+    query.loading = false;
     Collections collections = Collections.fromJson(response.data);
     final meta = collections.meta;
     if (meta != null) {
-      store.state.favTotal = meta.total;
+      query.total = meta.total;
     }
     store.dispatch(
         {'type': StoreActions.addFavPictureList, 'data': collections.data});
@@ -425,18 +443,64 @@ Future<PictureData> getPictureInfo(String id) async {
 
 Future<void> getPictureList(Store<MainState> store) async {
   MainState state = store.state;
-  if (state.loading) return;
-  if (state.pageNum != 1 && state.favPictureList.length >= state.listTotal) {
+  PictureQuery query = state.listQuery;
+  if (query.loading) return;
+  if (query.pageNum != 1 && query.list.length >= query.total) {
     return;
   }
   var params = state.search.params;
-  params['page'] = store.state.pageNum.toString();
-  params['apikey'] = await StorageManger.getApiKey();
+  params['page'] = query.pageNum.toString();
+  params['apikey'] ??= await StorageManger.getApiKey();
   if (params['sorting'] != 'random') {
     params['seed'] = '';
   }
-  state.loading = true;
-  state.pageNum++;
+  query.loading = true;
+  query.pageNum++;
+  if (!state.dioReady) {
+    dio = await initDio();
+    state.dioReady = true;
+  }
+  params.remove('q');
+  dio
+      .get(
+    '/api/v1/search',
+    queryParameters: params,
+    // options: Options(headers: {'x-requested-with': 'XMLHttpRequest'})
+  )
+      .then((response) {
+    query.loading = false;
+    SearchResult searchResult = SearchResult.fromJson(response.data);
+    final meta = searchResult.meta;
+    if (meta != null) {
+      query.total = meta.total;
+      if (params['sorting'] == 'random') {
+        params['seed'] = meta.seed;
+      }
+    }
+    store.dispatch(
+        {'type': StoreActions.addAllPictureInfo, 'data': searchResult.data});
+    // ignore: invalid_return_type_for_catch_error, avoid_print
+  }).catchError((error) => {print(error.toString())});
+}
+
+Future<void> getSearchList(Store<MainState> store) async {
+  MainState state = store.state;
+  PictureQuery query = state.filterQuery;
+  if (query.loading) return;
+  print(query.pageNum);
+  print(query.list.length);
+  print(query.total);
+  if (query.pageNum != 1 && query.list.length >= query.total) {
+    return;
+  }
+  var params = state.search.params;
+  params['page'] = query.pageNum.toString();
+  params['apikey'] ??= await StorageManger.getApiKey();
+  if (params['sorting'] != 'random') {
+    params['seed'] = '';
+  }
+  query.loading = true;
+  query.pageNum++;
   if (!state.dioReady) {
     dio = await initDio();
     state.dioReady = true;
@@ -449,17 +513,17 @@ Future<void> getPictureList(Store<MainState> store) async {
     // options: Options(headers: {'x-requested-with': 'XMLHttpRequest'})
   )
       .then((response) {
-    state.loading = false;
+    query.loading = false;
     SearchResult searchResult = SearchResult.fromJson(response.data);
     final meta = searchResult.meta;
     if (meta != null) {
-      store.state.listTotal = meta.total;
+      query.total = meta.total;
       if (params['sorting'] == 'random') {
         params['seed'] = meta.seed;
       }
     }
     store.dispatch(
-        {'type': StoreActions.addAllPictureInfo, 'data': searchResult.data});
+        {'type': StoreActions.addAllSearchList, 'data': searchResult.data});
     // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }
@@ -480,7 +544,7 @@ Future<void> getFavList(Store<MainState> store) async {
     queryParameters: params,
   )
       .then((response) {
-    state.loading = false;
+    state.listQuery.loading = false;
     FavoritesRes favList = FavoritesRes.fromJson(response.data);
     store.dispatch({'type': StoreActions.setFavList, 'data': favList.favData});
     // ignore: invalid_return_type_for_catch_error, avoid_print

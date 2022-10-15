@@ -1,31 +1,33 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:getwidget/components/button/gf_button.dart';
 import 'package:wallhevan/component/picture_comp.dart';
+import 'package:wallhevan/pages/search.dart';
 import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/model_view/picture_list_model.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
 
+import '../component/search_page.dart';
 import '../store/picture_res/picture_data.dart';
 import 'global_theme.dart';
 
 class PictureViews extends StatelessWidget {
-  const PictureViews({super.key});
+  const PictureViews({super.key, required this.back, required this.currentIndex, this.viewType = ListType.viewList});
+  final bool back;
+  final int currentIndex;
+  final ListType viewType;
+  String getType(String purity){
+    switch(purity){
+     case 'sketchy':
+        return '2';
+     case 'nsfw':
+        return '3';
+     default:
+        return '1';
+    }
+  }
+  Widget picDataBuild(String id,Function showSearch) {
 
-  // late PictureData pictureData;
-  //
-  // void getPictureData(String id) {
-  //     getPictureInfo(id).then((res) {
-  //       if (mounted && res.data != null) {
-  //         setState(() {
-  //           pictureData = res.data!;
-  //         });
-  //       }
-  //     });
-  // }
-
-  Widget picDataBuild(String id) {
     return FutureBuilder<PictureData>(
         future: getPictureInfo(id),
         builder: (context, AsyncSnapshot<PictureData> snapshot) {
@@ -34,11 +36,16 @@ class PictureViews extends StatelessWidget {
             var tags = data.tags;
             List<Widget> tagWidgets = [];
             tagWidgets.addAll(
-                tags.map((tag) => GFButton(text: tag.name, onPressed: () {})));
+                tags.map((tag) => HGFButton(
+                    type: getType(tag.purity),
+                    text: tag.name,
+                    selected: true,
+                    onSelected: (_)=>showSearch(tag.id))));
             return Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Wrap(
+                  spacing: 2,
                   children: tagWidgets,
                 )
               ],
@@ -74,7 +81,7 @@ class PictureViews extends StatelessWidget {
           child: StoreConnector<MainState, PictureListModel>(
               distinct: true,
               converter: (store) =>
-                  PictureListModel.formStore(store, store.state.viewType),
+                  PictureListModel.formStore(store, viewType),
               builder: (context, pictureView) {
                 List<PictureInfo> pictures = pictureView.pictures;
                 return GlobalTheme.backImg(
@@ -88,14 +95,22 @@ class PictureViews extends StatelessWidget {
                       image = ListView(
                         children: [
                           image,
-                          picDataBuild(pictures[index].id),
+                          picDataBuild(pictures[index].id,(int tagId){
+                            if(back){
+                              pictureView.setParams({'q':'id:$tagId','sorting': "relevance"},init:true);
+                              Navigator.pop(context);
+                            }else{
+                              pictureView.setParams({'q':'id:$tagId','sorting': "relevance"});
+                              Navigator.push(context, MaterialPageRoute(builder: (_)=>SearchBarPage(keyword: 'id:$tagId')));
+                            }
+                          }),
                         ],
                       );
                       image = Container(
                         padding: const EdgeInsets.all(5.0),
                         child: image,
                       );
-                      if (index == pictureView.currentIndex) {
+                      if (index == currentIndex) {
                         return Hero(
                           tag: item + index.toString(),
                           child: image,
@@ -112,7 +127,7 @@ class PictureViews extends StatelessWidget {
                       }
                     },
                     controller: ExtendedPageController(
-                      initialPage: pictureView.currentIndex,
+                      initialPage: currentIndex,
                     ),
                     scrollDirection: Axis.horizontal,
                   ),

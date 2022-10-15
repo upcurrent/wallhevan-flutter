@@ -8,32 +8,37 @@ class PictureListModel {
   final Function loadMore;
   final Function preview;
   final Function updatePic;
-  final StoreActions viewType;
+  final Function setParams;
+  final ListType viewType;
   final int currentIndex;
   final int pictureCount;
   PictureListModel(this.pictures, this.pictureCount, this.viewType,
-      this.currentIndex, this.loadMore, this.preview, this.updatePic);
-  static PictureListModel formStore(
-      Store<MainState> store, StoreActions viewType) {
+      this.currentIndex, this.loadMore, this.preview, this.updatePic,this.setParams);
+  static PictureListModel formStore(Store<MainState> store, ListType viewType) {
     MainState state = store.state;
-
+    var query = PictureQuery.getQuery(state, viewType);
     List<PictureInfo> list = [];
-    list.addAll(viewType == StoreActions.viewList
-        ? state.imageDataList
-        : state.favPictureList);
-
+    list.addAll(query.list);
     void loadMore() {
-      var loading = state.loading;
-      if(viewType == StoreActions.viewFav){
-        loading = state.favLoading;
-      }
-      if(loading){
+      var loading = query.loading;
+      if (loading) {
         return;
       }
       store.dispatch(
           {'type': StoreActions.loadMore, 'viewType': viewType}); // loadMore
     }
-
+    void setParams(Map<String, String> args, {bool init = false}) {
+      state.search.params.addAll(args);
+      if(init){
+        query.total = 0;
+        query.pageNum = 1;
+        query.list.clear();
+      }
+      store.dispatch({'type': StoreActions.searchChange});
+      if (init) {
+        store.dispatch({'type': StoreActions.init,'viewType':viewType});
+      }
+    }
     void preview(int index) {
       store.dispatch({
         'type': StoreActions.preview,
@@ -48,7 +53,7 @@ class PictureListModel {
     }
 
     return PictureListModel(list, list.length, viewType, state.currentIndex,
-        loadMore, preview, updatePic);
+        loadMore, preview, updatePic,setParams);
   }
 
   @override

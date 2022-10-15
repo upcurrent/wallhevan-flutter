@@ -19,7 +19,7 @@ class FavoritesModel {
     void init(int value) {
       store.dispatch({
         'type': StoreActions.init,
-        'viewType': StoreActions.viewFav,
+        'viewType': ListType.viewFav,
         'id': value
       });
     }

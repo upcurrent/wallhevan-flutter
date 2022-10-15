@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/pages/picture_list.dart';
 
+import '../component/search_page.dart';
 import '../store/index.dart';
 import '../store/model_view/home_model.dart';
 
@@ -130,22 +131,24 @@ class _HomePageState extends State<HomePage> {
                               controller: TextEditingController(
                                 text: keyword,
                               ),
+                              readOnly: true,
                               textInputAction: TextInputAction.search,
                               cursorColor: Colors.white,
                               style: const TextStyle(color: Colors.white),
-                              onSubmitted: (value) {
-                                home.setParams(
-                                    value != ''
-                                        ? {'q': value, 'sorting': "relevance"}
-                                        : {'q': value},
-                                    init: true);
-                                setKeyword(value);
-                              },
+                              onTap: ()=>Navigator.push(context, MaterialPageRoute(builder: (_)=> const SearchBarPage(keyword: '',))),
+                              // onSubmitted: (value) {
+                              //   home.setParams(
+                              //       value != ''
+                              //           ? {'q': value, 'sorting': "relevance"}
+                              //           : {'q': value},
+                              //       init: true);
+                              //   setKeyword(value);
+                              // },
                               decoration: InputDecoration(
                                   hintText: 'Search....',
                                   prefixIcon: IconButton(
                                       icon: const Icon(
-                                        Icons.menu_open,
+                                        Icons.menu,
                                         color: Colors.white,
                                       ),
                                       onPressed: () {
@@ -164,7 +167,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 ];
               },
-              body: const PictureList(viewType: StoreActions.viewList),
+              body: const PictureList(viewType: ListType.viewList),
             );
           },
         ));

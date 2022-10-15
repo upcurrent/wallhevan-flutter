@@ -1,12 +1,9 @@
 // ignore_for_file: file_names
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
-import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/search_response/thumbs.dart';
 
-import '../store/picture_res/picture_data.dart';
 import '../store/search_response/picture_info.dart';
 
 class PictureComp extends StatefulWidget {
@@ -101,7 +98,6 @@ class _PictureCompState extends State<PictureComp> {
                 widget.url,
                 fit: BoxFit.fitWidth,
                 cache: true,
-                maxBytes:6000,
                 loadStateChanged: (ExtendedImageState state) {
                   switch (state.extendedImageLoadState) {
                     case LoadState.loading:

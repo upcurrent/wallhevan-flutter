@@ -8,6 +8,7 @@ class SearchModel{
   final Map params;
   final SearchParams search;
   final Function setParams;
+  final Function resetParams;
   final Function setCategories;
   final Function setPurity;
   final Function init;
@@ -46,17 +47,30 @@ class SearchModel{
       this.setCategories,
       this.setPurity,
       this.init,
+      this.resetParams,
       );
 
-  static SearchModel fromStore(Store<MainState> store) {
+  static SearchModel fromStore(Store<MainState> store,{ListType viewType = ListType.viewList}) {
     MainState state = store.state;
     SearchParams search = state.search;
-
+    PictureQuery query = state.filterQuery;
     void setParams(Map<String, String> args, {bool init = false}) {
       search.params.addAll(args);
       store.dispatch({'type': StoreActions.searchChange});
       if (init) {
-        store.dispatch({'type': StoreActions.init});
+        store.dispatch({'type': StoreActions.init,'viewType':viewType});
+      }
+    }
+    void resetParams(Map<String, String> args, {bool init = false}) {
+      search.params.addAll(args);
+      if(init){
+        query.total = 0;
+        query.pageNum = 1;
+        query.list.clear();
+      }
+      store.dispatch({'type': StoreActions.searchChange});
+      if (init) {
+        store.dispatch({'type': StoreActions.init,'viewType':viewType});
       }
     }
     void setCategories(String key) {
@@ -75,6 +89,6 @@ class SearchModel{
     void init(){
       store.dispatch({'type': StoreActions.init});
     }
-    return SearchModel(search.params,search, setParams,setCategories,setPurity,init);
+    return SearchModel(search.params,search, setParams,setCategories,setPurity,init,resetParams);
   }
 }
