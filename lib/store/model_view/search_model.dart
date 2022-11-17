@@ -50,25 +50,19 @@ class SearchModel{
       this.resetParams,
       );
 
-  static SearchModel fromStore(Store<MainState> store,{ListType viewType = ListType.viewList}) {
+  static SearchModel fromStore(Store<MainState> store,{ListType viewType = ListType.viewList,String q = ''}) {
     MainState state = store.state;
     SearchParams search = state.search;
-    PictureQuery query = state.filterQuery;
-    void setParams(Map<String, String> args, {bool init = false}) {
+    Future<void> setParams(Map<String, String> args, {bool init = false}) async {
       search.params.addAll(args);
-      store.dispatch({'type': StoreActions.searchChange});
+      await store.dispatch({'type': StoreActions.searchChange});
       if (init) {
         store.dispatch({'type': StoreActions.init,'viewType':viewType});
       }
     }
-    void resetParams(Map<String, String> args, {bool init = false}) {
+    Future<void> resetParams(Map<String, String> args, {bool init = false}) async {
       search.params.addAll(args);
-      if(init){
-        query.total = 0;
-        query.pageNum = 1;
-        query.list.clear();
-      }
-      store.dispatch({'type': StoreActions.searchChange});
+      await store.dispatch({'type': StoreActions.searchChange});
       if (init) {
         store.dispatch({'type': StoreActions.init,'viewType':viewType});
       }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:wallhevan/pages/global_theme.dart';
-import 'package:wallhevan/pages/picture_list.dart';
+import 'package:wallhevan/pages/fav_list.dart';
 import 'package:wallhevan/pages/search.dart';
 import 'package:wallhevan/store/index.dart';
 
@@ -54,8 +54,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   )
                 ];
               },
-              body: const PictureList(
-                viewType: ListType.viewFav,
+              body: const FavPictureList(
                 keepAlive: false,
               )),
         ));

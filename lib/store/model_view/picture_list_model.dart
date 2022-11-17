@@ -9,14 +9,13 @@ class PictureListModel {
   final Function preview;
   final Function updatePic;
   final Function setParams;
-  final ListType viewType;
   final int currentIndex;
   final int pictureCount;
-  PictureListModel(this.pictures, this.pictureCount, this.viewType,
+  PictureListModel(this.pictures, this.pictureCount,
       this.currentIndex, this.loadMore, this.preview, this.updatePic,this.setParams);
-  static PictureListModel formStore(Store<MainState> store, ListType viewType) {
+  static PictureListModel formStore(Store<MainState> store) {
     MainState state = store.state;
-    var query = PictureQuery.getQuery(state, viewType);
+    var query = PictureQuery.getQuery(state);
     List<PictureInfo> list = [];
     list.addAll(query.list);
     void loadMore() {
@@ -25,24 +24,26 @@ class PictureListModel {
         return;
       }
       store.dispatch(
-          {'type': StoreActions.loadMore, 'viewType': viewType}); // loadMore
+          {'type': StoreActions.loadMore}); // loadMore
     }
-    void setParams(Map<String, String> args, {bool init = false}) {
-      state.search.params.addAll(args);
+    Future<void> setParams(String q,{bool init = false}) async {
+      // state.search.params.addAll(args);
+      print(q);
+      query.q = q;
       if(init){
         query.total = 0;
         query.pageNum = 1;
         query.list.clear();
       }
-      store.dispatch({'type': StoreActions.searchChange});
+      await store.dispatch({'type': StoreActions.searchChange});
       if (init) {
-        store.dispatch({'type': StoreActions.init,'viewType':viewType});
+        print(query.q);
+        store.dispatch({'type': StoreActions.init});
       }
     }
     void preview(int index) {
       store.dispatch({
         'type': StoreActions.preview,
-        'viewType': viewType,
         'currentIndex': index,
         'url': list[index].path
       });
@@ -52,7 +53,7 @@ class PictureListModel {
       store.dispatch({'type': StoreActions.updatePic, 'url': list[index].path});
     }
 
-    return PictureListModel(list, list.length, viewType, state.currentIndex,
+    return PictureListModel(list, list.length, state.currentIndex,
         loadMore, preview, updatePic,setParams);
   }
 

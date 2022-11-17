@@ -42,44 +42,20 @@ enum ListType {
 MainState counterReducer(MainState state, dynamic action) {
   print(action['type']);
   switch (action['type']) {
-    case StoreActions.addAllPictureInfo:
-      if (state.listQuery.pageNum == 2) {
-        state.listQuery.list.clear();
-      }
-      state.listQuery.list.addAll(action['data']);
-      break;
-    // case StoreActions.addAllWidget:
-    //   if (state.pageNum == 2) {
-    //     state.imageList.clear();
-    //   }
-    //   state.imageList.addAll(action['data']);
-    //   break;
     case StoreActions.addFavPictureList:
       if (state.favQuery.pageNum == 2) {
         state.favQuery.list.clear();
       }
       state.favQuery.list.addAll(action['data']);
       break;
-    case StoreActions.addAllSearchList:
-      if (state.filterQuery.pageNum == 2) {
-        state.filterQuery.list.clear();
-      }
-      print(state.filterQuery.pageNum);
-      state.filterQuery.list.addAll(action['data']);
-      break;
     case StoreActions.changeIndex:
       state.currentIndex = action['data'];
-      break;
-    case StoreActions.loading:
-      state.listQuery.loading = !state.listQuery.loading;
       break;
     case StoreActions.loadMore:
     case StoreActions.init:
       // getPictureList(action['context'], state);
       break;
     case StoreActions.preview:
-      state.currentIndex = action['currentIndex'];
-      state.viewType = action['viewType'];
       state.cachePic.add(action['url']);
       break;
     case StoreActions.accountChange:
@@ -109,43 +85,20 @@ void fetchContactorMiddleware(
     case ListType.viewFav:
       query = state.favQuery;
       break;
-    case ListType.viewSearch:
-      query = state.favQuery;
-      break;
     default:
-      query = state.listQuery;
+      query = state.favQuery;
   }
   if (action['type'] == StoreActions.init) {
-    switch (action['viewType']) {
-      case ListType.viewFav:
-        query.pageNum = 1;
-        if (action['id'] != null) {
-          state.favId = action['id'];
-          query.list.clear();
-          query.total = 0;
-          getFavorites(store);
-        }
-        break;
-      case ListType.viewSearch:
-        getSearchList(store);
-        break;
-      default:
-        query.pageNum = 1;
-        query.total = 0;
-        getPictureList(store);
+    query.pageNum = 1;
+    if (action['id'] != null) {
+      state.favId = action['id'];
+      query.list.clear();
+      query.total = 0;
+      getFavorites(store);
     }
   }
   if (action['type'] == StoreActions.loadMore) {
-    switch (action['viewType']) {
-      case ListType.viewFav:
-        getFavorites(store);
-        break;
-      case ListType.viewSearch:
-        getSearchList(store);
-        break;
-      default:
-        getPictureList(store);
-    }
+    getFavorites(store);
   }
   if (action['type'] == StoreActions.initFav) {
     getFavList(store);
@@ -154,7 +107,7 @@ void fetchContactorMiddleware(
     state.favList.clear();
     state.favList.addAll(action['data']);
     if (state.favList.isNotEmpty) {
-      if(state.favId == 0){
+      if (state.favId == 0) {
         state.favId = state.favList[0].id;
       }
       query.pageNum = 1;
@@ -174,8 +127,6 @@ class MainState {
   bool loading = false;
   int favId = 0;
   int currentIndex = 0;
-  final PictureQuery filterQuery = PictureQuery();
-  final PictureQuery listQuery = PictureQuery();
   final PictureQuery favQuery = PictureQuery();
   UserAccount account = UserAccount();
   SearchParams search = SearchParams();
@@ -194,16 +145,10 @@ class PictureQuery {
   bool loading = false;
   int pageNum = 1;
   int total = 0;
+  String q = '';
   final List<PictureInfo> list = [];
-  static PictureQuery getQuery(MainState state, ListType type) {
-    switch (type) {
-      case ListType.viewFav:
-        return state.favQuery;
-      case ListType.viewSearch:
-        return state.filterQuery;
-      default:
-        return state.listQuery;
-    }
+  static PictureQuery getQuery(MainState state) {
+    return state.favQuery;
   }
 }
 
@@ -441,93 +386,6 @@ Future<PictureData> getPictureInfo(String id) async {
   return PictureRes.fromJson(res.data).data!;
 }
 
-Future<void> getPictureList(Store<MainState> store) async {
-  MainState state = store.state;
-  PictureQuery query = state.listQuery;
-  if (query.loading) return;
-  if (query.pageNum != 1 && query.list.length >= query.total) {
-    return;
-  }
-  var params = state.search.params;
-  params['page'] = query.pageNum.toString();
-  params['apikey'] ??= await StorageManger.getApiKey();
-  if (params['sorting'] != 'random') {
-    params['seed'] = '';
-  }
-  query.loading = true;
-  query.pageNum++;
-  if (!state.dioReady) {
-    dio = await initDio();
-    state.dioReady = true;
-  }
-  params.remove('q');
-  dio
-      .get(
-    '/api/v1/search',
-    queryParameters: params,
-    // options: Options(headers: {'x-requested-with': 'XMLHttpRequest'})
-  )
-      .then((response) {
-    query.loading = false;
-    SearchResult searchResult = SearchResult.fromJson(response.data);
-    final meta = searchResult.meta;
-    if (meta != null) {
-      query.total = meta.total;
-      if (params['sorting'] == 'random') {
-        params['seed'] = meta.seed;
-      }
-    }
-    store.dispatch(
-        {'type': StoreActions.addAllPictureInfo, 'data': searchResult.data});
-    // ignore: invalid_return_type_for_catch_error, avoid_print
-  }).catchError((error) => {print(error.toString())});
-}
-
-Future<void> getSearchList(Store<MainState> store) async {
-  MainState state = store.state;
-  PictureQuery query = state.filterQuery;
-  if (query.loading) return;
-  print(query.pageNum);
-  print(query.list.length);
-  print(query.total);
-  if (query.pageNum != 1 && query.list.length >= query.total) {
-    return;
-  }
-  var params = state.search.params;
-  params['page'] = query.pageNum.toString();
-  params['apikey'] ??= await StorageManger.getApiKey();
-  if (params['sorting'] != 'random') {
-    params['seed'] = '';
-  }
-  query.loading = true;
-  query.pageNum++;
-  if (!state.dioReady) {
-    dio = await initDio();
-    state.dioReady = true;
-  }
-  //https://wallhaven.cc/api/v1/search
-  dio
-      .get(
-    '/api/v1/search',
-    queryParameters: params,
-    // options: Options(headers: {'x-requested-with': 'XMLHttpRequest'})
-  )
-      .then((response) {
-    query.loading = false;
-    SearchResult searchResult = SearchResult.fromJson(response.data);
-    final meta = searchResult.meta;
-    if (meta != null) {
-      query.total = meta.total;
-      if (params['sorting'] == 'random') {
-        params['seed'] = meta.seed;
-      }
-    }
-    store.dispatch(
-        {'type': StoreActions.addAllSearchList, 'data': searchResult.data});
-    // ignore: invalid_return_type_for_catch_error, avoid_print
-  }).catchError((error) => {print(error.toString())});
-}
-
 Future<void> getFavList(Store<MainState> store) async {
   MainState state = store.state;
   if (state.loading) return;
@@ -544,7 +402,7 @@ Future<void> getFavList(Store<MainState> store) async {
     queryParameters: params,
   )
       .then((response) {
-    state.listQuery.loading = false;
+    state.favQuery.loading = false;
     FavoritesRes favList = FavoritesRes.fromJson(response.data);
     store.dispatch({'type': StoreActions.setFavList, 'data': favList.favData});
     // ignore: invalid_return_type_for_catch_error, avoid_print

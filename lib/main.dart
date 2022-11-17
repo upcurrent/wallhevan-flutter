@@ -13,7 +13,6 @@ import 'package:wallhevan/store/model_view/main_view.dart';
 import 'pages/favorites.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
-import 'pages/picture_views.dart';
 import 'store/index.dart';
 import 'component/picture.dart';
 import 'account/account.dart';
@@ -104,7 +103,7 @@ class WallHaven extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/picture': (context) => const Picture(),
-            '/pictureViews': (context) => const PictureViews(back: false,currentIndex: 0,),
+            // '/pictureViews': (context) => const PictureViews(back: false,currentIndex: 0,),
             '/account': (context) => const Account(),
             '/login': (context) => const Login(),
             // '/search':(context) => const SearchBarDemo(),

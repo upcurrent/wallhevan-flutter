@@ -14,6 +14,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  String sorting = 'toplist';
+
   List<Widget> cartList(HomeModel home) {
     const BoxDecoration decoration = BoxDecoration(
         gradient: LinearGradient(
@@ -40,9 +43,11 @@ class _HomePageState extends State<HomePage> {
       return Padding(
           padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
           child: GestureDetector(
-              onTap: () => home.setParams({'sorting': value}, init: true),
+              onTap: () => setState(() {
+                sorting = value;
+              }),
               child: Container(
-                decoration: home.params['sorting'] == value
+                decoration: sorting == value
                     ? selDecoration
                     : decoration,
                 height: 120,
@@ -135,7 +140,12 @@ class _HomePageState extends State<HomePage> {
                               textInputAction: TextInputAction.search,
                               cursorColor: Colors.white,
                               style: const TextStyle(color: Colors.white),
-                              onTap: ()=>Navigator.push(context, MaterialPageRoute(builder: (_)=> const SearchBarPage(keyword: '',))),
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const SearchBarPage(
+                                            keyword: '',
+                                          ))),
                               // onSubmitted: (value) {
                               //   home.setParams(
                               //       value != ''
@@ -167,7 +177,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 ];
               },
-              body: const PictureList(viewType: ListType.viewList),
+              body: PictureList(q: '',sort:sorting),
             );
           },
         ));
