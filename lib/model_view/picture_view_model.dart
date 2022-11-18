@@ -10,15 +10,13 @@ class PictureViewModel {
 
   Function dispatch;
   PictureReq? req;
-  PictureViewModel( this.params, this.dispatch,this.req);
-
+  PictureViewModel( this.params, this.dispatch,this.req,this.homeKey);
+  int homeKey;
   static PictureViewModel fromStore(Store<MainState> store) {
-    Map<String, String> params = Map.castFrom(store.state.search.params);
     void dispatch(Map<String, dynamic> arg) {
       store.dispatch(arg);
     }
-    print(params);
-    return PictureViewModel(params, dispatch,null);
+    return PictureViewModel(store.state.search.params, dispatch,null,store.state.homeKey);
   }
 
   void preview(String path) {
@@ -30,12 +28,8 @@ class PictureViewModel {
   }
 
   Future<void> getPictureList(PictureReq req,Function callback) async {
-
     if (req.loading) return;
-    if (req.pageNum != 1 && req.pictures.length >= req.total) {
-      return;
-    }
-    Map<String, String> params = Map.castFrom(this.params);
+    Map<String, String> params = <String,String>{}..addAll(this.params);
     params['q'] = req.q;
     params['page'] = req.pageNum.toString();
     params['apikey'] ??= await StorageManger.getApiKey();
@@ -68,12 +62,12 @@ class PictureViewModel {
   @override
   bool operator ==(Object other) {
     if (other is PictureViewModel) {
-      return params.entries.every((value) => other.params.containsValue(value));
+      return homeKey == other.homeKey;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode => params.length.hashCode;
+  int get hashCode => homeKey.hashCode;
 }

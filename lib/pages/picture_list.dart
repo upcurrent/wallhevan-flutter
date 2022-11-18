@@ -41,22 +41,21 @@ class _PictureListState extends State<PictureList>
   @override
   void didUpdateWidget(covariant PictureList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    setState(() {
-      req.q = widget.q;
-      req.sort = widget.sort ?? req.sort;
-      req.pageNum = 1;
-      req.total = 0;
-    });
-    init();
+    if(oldWidget.q != req.q){
+      setState(() {
+        req.q = widget.q;
+        req.pageNum = 1;
+        req.total = 0;
+      });
+      init();
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      req.sort = widget.sort ?? 'toplist';
-      req.q = widget.q;
-    });
+    req.sort = widget.sort ?? 'toplist';
+    req.q = widget.q;
   }
 
   void addData(List<PictureInfo> data,int total){
@@ -83,6 +82,13 @@ class _PictureListState extends State<PictureList>
     return GlobalTheme.backImg(StoreConnector<MainState, PictureViewModel>(
         distinct: true,
         converter: (store) => PictureViewModel.fromStore(store),
+        onWillChange: (old,now){
+          var name = ModalRoute.of(context)?.settings.name;
+          if(now.homeKey != old?.homeKey && name == '/'){
+            now.getPictureList(req,setData);
+          }
+          // Navigator.defaultRouteName
+        },
         onInitialBuild:(listModel){
           listModel.getPictureList(req,setData);
           setState(() {
@@ -103,7 +109,7 @@ class _PictureListState extends State<PictureList>
           return NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
               if (scrollInfo.metrics.pixels >=
-                  scrollInfo.metrics.maxScrollExtent - 400) {
+                  scrollInfo.metrics.maxScrollExtent - 400 && req.pictures.length < req.total) {
                 listModel.getPictureList(req,addData);
                 return true;
               }

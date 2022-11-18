@@ -127,6 +127,9 @@ class FavPictureViews extends StatelessWidget {
                         pictureView.loadMore();
                       }
                     },
+                    // slideScaleHandler:(offset){
+                    //
+                    // },
                     controller: ExtendedPageController(
                       initialPage: currentIndex,
                     ),

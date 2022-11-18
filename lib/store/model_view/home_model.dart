@@ -13,15 +13,16 @@ class HomeModel {
   );
 
   static HomeModel fromStore(Store<MainState> store) {
+
     MainState state = store.state;
     SearchParams search = state.search;
 
     void setParams(Map<String, String> args, {bool init = false}) {
       search.params.addAll(args);
-      store.dispatch({'type': StoreActions.searchChange});
-      if (init) {
-        store.dispatch({'type': StoreActions.init});
-      }
+      store.dispatch({'type': StoreActions.initHomePage});
+      // if (init) {
+      //   store.dispatch({'type': StoreActions.init});
+      // }
     }
 
     return HomeModel(search.params, state.homeScrollCtrl, setParams);

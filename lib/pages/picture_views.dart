@@ -22,7 +22,6 @@ class PictureViews extends StatefulWidget {
   final Function updatePic;
   @override
   State<StatefulWidget> createState() => _PictureViewsState();
- 
 }
 
 class _PictureViewsState extends State<PictureViews> {
@@ -36,8 +35,8 @@ class _PictureViewsState extends State<PictureViews> {
         return '1';
     }
   }
-  List<PictureInfo> pictures = [];
 
+  List<PictureInfo> pictures = [];
 
   @override
   void initState() {
@@ -82,6 +81,12 @@ class _PictureViewsState extends State<PictureViews> {
           slideAxis: SlideAxis.vertical,
           slideType: SlideType.onlyImage,
           onSlidingPage: (state) {},
+          // slideScaleHandler:(offset){
+          //
+          // },
+          // slideEndHandler: (){
+          //
+          // },
           child: GlobalTheme.backImg(
             ExtendedImageGesturePageView.builder(
               itemBuilder: (BuildContext context, int index) {
@@ -90,22 +95,24 @@ class _PictureViewsState extends State<PictureViews> {
                     image: pictures[index],
                     type: PictureComp.fullSizePicture,
                     url: pictures[index].path);
-                image = ListView(
-                  children: [
-                    image,
-                    picDataBuild(pictures[index].id, (int tagId) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  SearchBarPage(keyword: 'id:$tagId')));
-                    }),
-                  ],
-                );
-                image = Container(
-                  padding: const EdgeInsets.all(5.0),
-                  child: image,
-                );
+                image = SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Expanded(child: image),
+                      image,
+                      picDataBuild(pictures[index].id, (int tagId) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    SearchBarPage(keyword: 'id:$tagId')));
+                      }),
+                    ],
+                ));
+                // image = Container(
+                //   padding: const EdgeInsets.all(5.0),
+                //   child: image,
+                // );
                 if (index == widget.curIndex) {
                   return Hero(
                     tag: item + index.toString(),
@@ -119,7 +126,7 @@ class _PictureViewsState extends State<PictureViews> {
               onPageChanged: (int index) {
                 widget.updatePic(pictures[index].path);
                 if (index >= pictures.length - 2) {
-                  widget.loadMore((List<PictureInfo> data){
+                  widget.loadMore((List<PictureInfo> data) {
                     setState(() {
                       pictures.addAll(data);
                     });

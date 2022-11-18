@@ -111,7 +111,7 @@ class SearchPage extends StatelessWidget {
                     color: Colors.white
                 ),
                 onSubmitted: (value){
-                  searchModel.setParams({'q':value},search:true);
+                  searchModel.setParams({'q':value},init:true);
                   // setKeyword(value);
                   Scaffold.of(context).closeDrawer();
                 },

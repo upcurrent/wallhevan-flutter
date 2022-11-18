@@ -18,6 +18,7 @@ enum StoreActions {
   addAllWidget,
   addPictureInfo,
   addFavPictureList,
+  initHomePage,
   setFavList,
   loading,
   preview,
@@ -73,6 +74,10 @@ MainState counterReducer(MainState state, dynamic action) {
       break;
     case StoreActions.homeScrollTop:
       state.homeScrollTop();
+      break;
+    case StoreActions.initHomePage:
+      state.homeKey++;
+      break;
   }
   return state;
 }
@@ -131,13 +136,15 @@ class MainState {
   UserAccount account = UserAccount();
   SearchParams search = SearchParams();
   bool dioReady = false;
-  ListType viewType = ListType.viewList;
-  int total = 0;
-  int listTotal = 0;
-  int searchTotal = 0;
+  int homeKey = 0;
   void homeScrollTop() {
     homeScrollCtrl.animateTo(0,
         duration: const Duration(milliseconds: 200), curve: Curves.ease);
+  }
+
+  @override
+  String toString() {
+    return 'MainState{ loading: $loading, currentIndex: $currentIndex, search: $search, dioReady: $dioReady, homeKey: $homeKey}';
   }
 }
 
@@ -150,6 +157,7 @@ class PictureQuery {
   static PictureQuery getQuery(MainState state) {
     return state.favQuery;
   }
+
 }
 
 class SearchParams {

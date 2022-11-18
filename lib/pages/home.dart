@@ -43,9 +43,12 @@ class _HomePageState extends State<HomePage> {
       return Padding(
           padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
           child: GestureDetector(
-              onTap: () => setState(() {
-                sorting = value;
-              }),
+              onTap: (){
+                setState(() {
+                  sorting = value;
+                });
+                home.setParams({'sorting': value});
+              },
               child: Container(
                 decoration: sorting == value
                     ? selDecoration
