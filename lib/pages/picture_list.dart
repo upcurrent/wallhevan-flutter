@@ -36,6 +36,7 @@ class _PictureListState extends State<PictureList>
     load = widget.load ?? load;
     getPictureList(load);
   }
+
   StoreController controller = Get.find();
   @override
   Widget build(BuildContext context) {
@@ -69,17 +70,11 @@ class _PictureListState extends State<PictureList>
                                 curIndex: index,
                                 load: load,
                               )));
-                }, child: GetBuilder<StoreController>(
-                  init: controller,
-                  builder: (_) {
-                    // print(controller.cachePic);
-                    return controller.cachePic.contains(url)
-                        ? PictureComp.create(
-                            context, load.pictures[index], path)
-                        : PictureComp.create(
-                            context, load.pictures[index], url);
-                  },
-                ));
+                }, child: Obx(() {
+                  return controller.cachePic.contains(path)
+                      ? PictureComp.create(context, load.pictures[index], path)
+                      : PictureComp.create(context, load.pictures[index], url);
+                }));
                 // PictureComp.create(context, load.pictures[index], url));
 
                 // ? PictureComp.create(context, load.pictures[index], path)

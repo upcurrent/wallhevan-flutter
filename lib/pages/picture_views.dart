@@ -40,6 +40,7 @@ class _PictureViewsState extends State<PictureViews> {
   @override
   void initState() {
     super.initState();
+    controller.updatePic(widget.load.pictures[widget.curIndex].path);
   }
 
   Widget picDataBuild(String id, Function showSearch) {
