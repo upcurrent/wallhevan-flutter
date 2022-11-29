@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
+import 'package:get/get.dart';
 import 'package:wallhevan/pages/picture_list.dart';
 
 import '../component/search_page.dart';
-import '../store/index.dart';
-import '../store/model_view/home_model.dart';
+import '../store/store.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,10 +13,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
+  final LoadResult load = LoadResult();
   String sorting = 'toplist';
 
-  List<Widget> cartList(HomeModel home) {
+  final StoreController storeController = Get.find();
+
+  List<Widget> cartList() {
+    // load.init();
     const BoxDecoration decoration = BoxDecoration(
         gradient: LinearGradient(
       begin: Alignment.topCenter,
@@ -42,32 +44,34 @@ class _HomePageState extends State<HomePage> {
     Padding card(Text text, Image image, String value) {
       return Padding(
           padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-          child: GestureDetector(
-              onTap: (){
-                setState(() {
-                  sorting = value;
-                });
-                home.setParams({'sorting': value});
-              },
-              child: Container(
-                decoration: sorting == value
-                    ? selDecoration
-                    : decoration,
-                height: 120,
-                width: 120,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    SizedBox(
-                      height: 32,
-                      width: 32,
-                      child: image,
+          child: GetBuilder<LoadResult>(
+              init: load,
+              builder: (_) => GestureDetector(
+                  onTap: () {
+                    load.setParams({'sorting': value});
+                    load.sort = value.obs;
+                    load.init(renderer: true);
+                    // print('3333333333333 ${load.sort.value}   $value');
+                    getPictureList(load);
+                  },
+                  child: Container(
+                    decoration:
+                        load.sort.value == value ? selDecoration : decoration,
+                    height: 120,
+                    width: 120,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          height: 32,
+                          width: 32,
+                          child: image,
+                        ),
+                        text,
+                      ],
                     ),
-                    text,
-                  ],
-                ),
-              )));
+                  ))));
     }
 
     return [
@@ -104,85 +108,79 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Container(
         constraints: const BoxConstraints.expand(),
-        child: StoreConnector<MainState, HomeModel>(
-          // onWillChange: _onReduxChange,
-          converter: (store) => HomeModel.fromStore(store),
-          builder: (context, home) {
-            return NestedScrollView(
-              controller: home.homeScrollCtrl,
-              headerSliverBuilder: (context, sel) {
-                return <Widget>[
-                  SliverAppBar(
-                    pinned: false,
-                    snap: false,
-                    floating: false,
-                    toolbarHeight: 190,
-                    backgroundColor: Colors.transparent,
-                    leadingWidth: 0,
-                    leading: const Icon(Icons.menu, color: Colors.transparent),
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 120,
-                          width: double.infinity,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal, //方向
-                            children: cartList(home),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                          child: SizedBox(
-                            height: 45,
-                            child: TextField(
-                              controller: TextEditingController(
-                                text: keyword,
-                              ),
-                              readOnly: true,
-                              textInputAction: TextInputAction.search,
-                              cursorColor: Colors.white,
-                              style: const TextStyle(color: Colors.white),
-                              onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const SearchBarPage(
-                                            keyword: '',
-                                          ))),
-                              // onSubmitted: (value) {
-                              //   home.setParams(
-                              //       value != ''
-                              //           ? {'q': value, 'sorting': "relevance"}
-                              //           : {'q': value},
-                              //       init: true);
-                              //   setKeyword(value);
-                              // },
-                              decoration: InputDecoration(
-                                  hintText: 'Search....',
-                                  prefixIcon: IconButton(
-                                      icon: const Icon(
-                                        Icons.menu,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () {
-                                        Scaffold.of(context).openDrawer();
-                                      }),
-                                  suffixIcon: const Icon(
-                                    Icons.search,
-                                    color: Colors.white,
-                                  )),
-                            ),
-                          ),
-                        )
-                      ],
+        child: NestedScrollView(
+          controller: storeController.homeScrollCtrl,
+          headerSliverBuilder: (context, sel) {
+            return <Widget>[
+              SliverAppBar(
+                pinned: false,
+                snap: false,
+                floating: false,
+                toolbarHeight: 190,
+                backgroundColor: Colors.transparent,
+                leadingWidth: 0,
+                leading: const Icon(Icons.menu, color: Colors.transparent),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 120,
+                      width: double.infinity,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal, //方向
+                        children: cartList(),
+                      ),
                     ),
-                    expandedHeight: 190,
-                  )
-                ];
-              },
-              body: PictureList(q: '',sort:sorting),
-            );
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                      child: SizedBox(
+                        height: 45,
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: keyword,
+                          ),
+                          readOnly: true,
+                          textInputAction: TextInputAction.search,
+                          cursorColor: Colors.white,
+                          style: const TextStyle(color: Colors.white),
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const SearchBarPage(
+                                        keyword: '',
+                                      ))),
+                          // onSubmitted: (value) {
+                          //   home.setParams(
+                          //       value != ''
+                          //           ? {'q': value, 'sorting': "relevance"}
+                          //           : {'q': value},
+                          //       init: true);
+                          //   setKeyword(value);
+                          // },
+                          decoration: InputDecoration(
+                              hintText: 'Search....',
+                              prefixIcon: IconButton(
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    Scaffold.of(context).openDrawer();
+                                  }),
+                              suffixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.white,
+                              )),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                expandedHeight: 190,
+              )
+            ];
           },
+          body: PictureList(load: load),
         ));
   }
 }

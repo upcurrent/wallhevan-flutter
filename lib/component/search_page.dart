@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:wallhevan/pages/picture_list.dart';
+import 'package:wallhevan/store/store.dart';
 
 class SearchBarPage extends StatefulWidget {
   final String keyword;
@@ -9,13 +11,20 @@ class SearchBarPage extends StatefulWidget {
 }
 
 class _SearchBarPageState extends State<SearchBarPage> {
+  final LoadResult load = LoadResult();
   String q = '';
   @override
   void initState() {
     super.initState();
-    setState(() {
-      q = widget.keyword;
-    });
+    q = widget.keyword;
+    load.q = q.obs;
+    load.sort = 'relevance'.obs;
+  }
+
+  void init(String value){
+    load.q = q.obs;
+    load.init();
+    getPictureList(load);
   }
 
   @override
@@ -45,6 +54,7 @@ class _SearchBarPageState extends State<SearchBarPage> {
             setState(() {
               q = value;
             });
+            init(value);
           },
           decoration: const InputDecoration(
               hintText: 'Search....',
@@ -58,7 +68,7 @@ class _SearchBarPageState extends State<SearchBarPage> {
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
-        child: PictureList(q: q,sort:"relevance"),
+        child: PictureList(load:load),
       ),
     );
   }

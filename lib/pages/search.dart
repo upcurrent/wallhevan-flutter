@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/shape/gf_button_shape.dart';
 import 'package:wallhevan/store/index.dart';
 
 import '../store/model_view/search_model.dart';
 
+
 class SearchPage extends StatelessWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  SearchPage({Key? key}) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {

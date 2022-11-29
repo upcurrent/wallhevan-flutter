@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:get/get.dart';
 import 'package:getwidget/components/drawer/gf_drawer.dart';
 
 import 'package:redux/redux.dart';
 import 'package:wallhevan/pages/global_theme.dart';
+import 'package:wallhevan/pages/picture_views.dart';
 import 'package:wallhevan/store/model_view/main_view.dart';
+import 'package:wallhevan/store/store.dart';
 import 'pages/favorites.dart';
 import 'pages/home.dart';
 import 'pages/search.dart';
@@ -31,6 +34,7 @@ void main() {
       fetchContactorMiddleware,
     ],
   );
+  Get.put(StoreController());
   runApp(WallHaven(
     store: store,
   ));
@@ -103,7 +107,7 @@ class WallHaven extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/picture': (context) => const Picture(),
-            // '/pictureViews': (context) => const PictureViews(back: false,currentIndex: 0,),
+            // '/pictureViews': (context) => PictureViews(load: LoadResult(),curIndex: 0,),
             '/account': (context) => const Account(),
             '/login': (context) => const Login(),
             // '/search':(context) => const SearchBarDemo(),
@@ -126,33 +130,35 @@ class _MyHomePageState extends State<MyHomePage> {
   int pageIndex = 0;
   PageController _controller = PageController();
 
+  final StoreController storeController = Get.find();
+
   @override
   void initState() {
     _controller = PageController(initialPage: pageIndex, keepPage: true);
     super.initState();
   }
 
-  void _onPageChanged(int index, Function callback,
-      {Function? scrollTop}) async {
+  void _onPageChanged(int index, Function callback) async {
     // if (index == 2 || index == 3) {
     //   final prefs = await SharedPreferences.getInstance();
     //   String? rememberCookie = prefs.getString('remember_web');
     //   callback(rememberCookie == null);
     //   return;
     // }
-    if (pageIndex == index && index == 0 && scrollTop != null) {
-      scrollTop();
+    if (pageIndex == index && index == 0) {
+      storeController.homeScrollTop();
     }
     callback(false);
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
         resizeToAvoidBottomInset: false,
         drawer: GFDrawer(
           // elevation: 0,
-          child: GlobalTheme.backImg(const SearchPage()),
+          child: GlobalTheme.backImg(SearchPage()),
         ),
         bottomNavigationBar:
             StoreConnector<MainState, MainModel>(converter: (store) {
@@ -183,7 +189,6 @@ class _MyHomePageState extends State<MyHomePage> {
               unselectedItemColor: const Color(0xff14303a),
               selectedItemColor: const Color(0xffffffff),
               onTap: (index) => _onPageChanged(
-                  scrollTop: main.scrollTop,
                   index,
                   (flag) => flag
                       ? Navigator.pushNamed(context, '/login')
@@ -204,11 +209,11 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             }
           }),
-          children: const [
-            HomePage(),
+          children:  [
+            const HomePage(),
             SearchPage(),
-            FavoritesPage(),
-            Account()
+            const FavoritesPage(),
+            const Account()
           ],
         )));
   }
