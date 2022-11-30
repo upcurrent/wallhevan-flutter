@@ -8,7 +8,6 @@ import 'package:wallhevan/store/collections/fav_data.dart';
 import 'package:wallhevan/store/collections/collections.dart';
 import 'package:wallhevan/store/picture_res/picture_data.dart';
 import 'package:wallhevan/store/picture_res/picture_res.dart';
-import 'package:wallhevan/store/search_response/search_result.dart';
 import 'collections/fav_response.dart';
 import 'search_response/picture_info.dart';
 
@@ -41,7 +40,6 @@ enum ListType {
 }
 
 MainState counterReducer(MainState state, dynamic action) {
-  print(action['type']);
   switch (action['type']) {
     case StoreActions.addFavPictureList:
       if (state.favQuery.pageNum == 2) {

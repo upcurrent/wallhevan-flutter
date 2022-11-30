@@ -7,7 +7,6 @@ import 'package:wallhevan/store/index.dart';
 import 'package:wallhevan/store/model_view/picture_list_model.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
 
-import '../component/search_page.dart';
 import '../store/picture_res/picture_data.dart';
 import 'global_theme.dart';
 

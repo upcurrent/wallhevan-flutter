@@ -14,6 +14,7 @@ class PictureComp extends StatefulWidget {
   final String url;
   static const int previewPicture = 1;
   static const int fullSizePicture = 2;
+  static const int originPicture = 3;
   const PictureComp(
       {super.key,
       required this.image,
@@ -50,7 +51,6 @@ class PictureComp extends StatefulWidget {
 }
 
 class _PictureCompState extends State<PictureComp> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -58,68 +58,99 @@ class _PictureCompState extends State<PictureComp> {
         width: widget.halfWidth,
         padding: const EdgeInsets.all(2),
         child: widget.type == PictureComp.fullSizePicture
-            ? ExtendedImage.network(
-                widget.url,
-                fit: BoxFit.scaleDown,
-                // enableSlideOutPage:true,
-                cache: true,
-                loadStateChanged: (ExtendedImageState state) {
-                  switch (state.extendedImageLoadState) {
-                    case LoadState.loading:
-                      Thumbs? thumbs = widget.image.thumbs;
-                      return ExtendedImage.network(
-                        thumbs.original!,
-                        width: double.infinity,
-                        fit: BoxFit.fitWidth,
-                      );
-                    case LoadState.completed:
-                      return null;
-                    case LoadState.failed:
-                      return null;
-                  }
+            ? GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/picture',
+                      arguments: widget.image);
                 },
-                mode: ExtendedImageMode.gesture,
-                initGestureConfigHandler: (state) {
-                  return GestureConfig(
-                    minScale: 0.9,
-                    animationMinScale: 0.7,
-                    maxScale: 3.0,
-                    animationMaxScale: 3.5,
-                    speed: 1.0,
-                    inertialSpeed: 100.0,
-                    initialScale: 1.0,
-                    inPageView: true,
-                    initialAlignment: InitialAlignment.center,
-                  );
-                },
-                //cancelToken: cancellationToken,
+                child: ExtendedImage.network(
+                  widget.url,
+                  fit: BoxFit.scaleDown,
+                  // enableSlideOutPage:true,
+                  cache: true,
+                  loadStateChanged: (ExtendedImageState state) {
+                    switch (state.extendedImageLoadState) {
+                      case LoadState.loading:
+                        Thumbs? thumbs = widget.image.thumbs;
+                        return ExtendedImage.network(
+                          thumbs.original!,
+                          width: double.infinity,
+                          fit: BoxFit.fitWidth,
+                        );
+                      case LoadState.completed:
+                        return null;
+                      case LoadState.failed:
+                        return null;
+                    }
+                  },
+                  mode: ExtendedImageMode.none,
+                  //cancelToken: cancellationToken,
+                ),
               )
-            : ExtendedImage.network(
-                widget.url,
-                fit: BoxFit.fitWidth,
-                cache: true,
-                loadStateChanged: (ExtendedImageState state) {
-                  switch (state.extendedImageLoadState) {
-                    case LoadState.loading:
-                      return Shimmer(
-                        duration: const Duration(seconds: 2), //Default value
-                        color: const Color.fromRGBO(
-                            112, 142, 122, 1), //Default value
-                        enabled: true, //Default value
-                        direction: const ShimmerDirection
-                            .fromLeftToRight(), //Default Value
-                        child: Container(
-                          color: const Color.fromRGBO(230, 230, 230, 1),
-                        ),
+            : widget.type == PictureComp.originPicture
+                ? ExtendedImage.network(
+                    widget.url,
+                    fit: BoxFit.scaleDown,
+                    // enableSlideOutPage:true,
+                    cache: true,
+                    loadStateChanged: (ExtendedImageState state) {
+                      switch (state.extendedImageLoadState) {
+                        case LoadState.loading:
+                          Thumbs? thumbs = widget.image.thumbs;
+                          return ExtendedImage.network(
+                            thumbs.original!,
+                            width: double.infinity,
+                            fit: BoxFit.fitWidth,
+                          );
+                        case LoadState.completed:
+                          return null;
+                        case LoadState.failed:
+                          return null;
+                      }
+                    },
+                    mode: ExtendedImageMode.gesture,
+                    initGestureConfigHandler: (state) {
+                      return GestureConfig(
+                        minScale: 0.9,
+                        animationMinScale: 0.7,
+                        maxScale: 3.0,
+                        animationMaxScale: 3.5,
+                        speed: 1.0,
+                        inertialSpeed: 100.0,
+                        initialScale: 1.0,
+                        inPageView: true,
+                        initialAlignment: InitialAlignment.center,
                       );
-                    case LoadState.completed:
-                      return null;
-                    case LoadState.failed:
-                      return null;
-                  }
-                },
-                mode: ExtendedImageMode.none,
-                //cancelToken: cancellationToken,
-              ));
+                    },
+                    //cancelToken: cancellationToken,
+                  )
+                : ExtendedImage.network(
+                    widget.url,
+                    fit: BoxFit.fitWidth,
+                    cache: true,
+                    loadStateChanged: (ExtendedImageState state) {
+                      switch (state.extendedImageLoadState) {
+                        case LoadState.loading:
+                          return Shimmer(
+                            duration:
+                                const Duration(seconds: 2), //Default value
+                            color: const Color.fromRGBO(
+                                112, 142, 122, 1), //Default value
+                            enabled: true, //Default value
+                            direction: const ShimmerDirection
+                                .fromLeftToRight(), //Default Value
+                            child: Container(
+                              color: const Color.fromRGBO(230, 230, 230, 1),
+                            ),
+                          );
+                        case LoadState.completed:
+                          return null;
+                        case LoadState.failed:
+                          return null;
+                      }
+                    },
+                    mode: ExtendedImageMode.none,
+                    //cancelToken: cancellationToken,
+                  ));
   }
 }

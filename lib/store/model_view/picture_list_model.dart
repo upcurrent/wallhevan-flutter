@@ -28,7 +28,6 @@ class PictureListModel {
     }
     Future<void> setParams(String q,{bool init = false}) async {
       // state.search.params.addAll(args);
-      print(q);
       query.q = q;
       if(init){
         query.total = 0;
@@ -37,7 +36,6 @@ class PictureListModel {
       }
       await store.dispatch({'type': StoreActions.searchChange});
       if (init) {
-        print(query.q);
         store.dispatch({'type': StoreActions.init});
       }
     }

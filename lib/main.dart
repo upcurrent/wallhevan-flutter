@@ -10,7 +10,6 @@ import 'package:getwidget/components/drawer/gf_drawer.dart';
 
 import 'package:redux/redux.dart';
 import 'package:wallhevan/pages/global_theme.dart';
-import 'package:wallhevan/pages/picture_views.dart';
 import 'package:wallhevan/store/model_view/main_view.dart';
 import 'package:wallhevan/store/store.dart';
 import 'pages/favorites.dart';
@@ -209,11 +208,11 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             }
           }),
-          children:  [
-            const HomePage(),
+          children:  const [
+            HomePage(),
             SearchPage(),
-            const FavoritesPage(),
-            const Account()
+            FavoritesPage(),
+            Account()
           ],
         )));
   }

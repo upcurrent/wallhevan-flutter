@@ -1,46 +1,51 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
 import 'package:wallhevan/store/search_response/search_result.dart';
 
 import '../api/api.dart';
-class StoreController{
+
+class StoreController {
   var pageNum = 0.obs;
   var load = LoadResult().obs;
-  var pages = <String,LoadResult>{}.obs;
+  var pages = <String, LoadResult>{}.obs;
   var cachePic = <String>{}.obs;
-  final ScrollController homeScrollCtrl = ScrollController(keepScrollOffset: false);
+  final ScrollController homeScrollCtrl =
+      ScrollController(keepScrollOffset: false);
 
-  LoadResult getPictures(String key){
+  LoadResult getPictures(String key) {
     var pageMap = pages();
     // pageMap.
-    if(pageMap.containsKey(key)){
+    if (pageMap.containsKey(key)) {
       return pages()[key]!;
-    }else{
+    } else {
       var load = LoadResult();
-      pageMap.addAll({DateTime.now().toString():load});
+      pageMap.addAll({DateTime.now().toString(): load});
       return load;
     }
   }
-  void updatePic(String path){
-    if(cachePic.contains(path))return;
+
+  void updatePic(String path) {
+    if (cachePic.contains(path)) return;
     cachePic().add(path);
   }
+
   void homeScrollTop() {
     homeScrollCtrl.animateTo(0,
         duration: const Duration(milliseconds: 200), curve: Curves.ease);
   }
 }
-String getTag({String q="",String sort="toplist"}){
-  String tag = "${DateTime.now()}";
+
+String getTag({String q = "", String sort = "toplist"}) {
+  String tag = "${DateTime.now().millisecondsSinceEpoch}";
   LoadResult load = LoadResult();
   load.q = q;
   load.sort = sort;
-  Get.put(load,tag:tag);
+  Get.put(load, tag: tag);
   return tag;
 }
-class LoadResult extends GetxController{
+
+class LoadResult extends GetxController {
   // todo
   final Map<String, String> params = {
     'categories': '010',
@@ -60,16 +65,16 @@ class LoadResult extends GetxController{
   bool loading = false;
   var pictures = <PictureInfo>[];
 
-  void init({renderer=false}){
+  void init({renderer = false}) {
     pageNum = 1;
     total = 0;
     pictures.clear();
-    if(renderer){
+    if (renderer) {
       update();
     }
   }
 
-  void renderer(){
+  void renderer() {
     update();
   }
 
@@ -79,24 +84,21 @@ class LoadResult extends GetxController{
       init();
     }
   }
-  void setPictures(List<PictureInfo>? data,int total){
-    print("setPictures ${pictures.length}");
-    if(data != null){
-      print("zzzzzzzzzzzzzzzzz ${data[0].path}      ");
+
+  void setPictures(List<PictureInfo>? data, int total) {
+    if (data != null) {
       pictures.addAll(data);
       pageNum++;
     }
     this.total = total;
     update();
-    print(pictures.length);
   }
-
 }
 
 Future<void> getPictureList(LoadResult load) async {
   if (load.loading) return;
   if (load.pageNum != 1 && load.pictures.length >= load.total) return;
-  Map<String, String> params = <String,String>{}..addAll(load.params);
+  Map<String, String> params = <String, String>{}..addAll(load.params);
   params['q'] = load.q;
   params['page'] = "${load.pageNum}";
   params['apikey'] ??= await StorageManger.getApiKey();
@@ -104,7 +106,7 @@ Future<void> getPictureList(LoadResult load) async {
   if (params['sorting'] != 'random') {
     params['seed'] = '';
   }
-  print(params);
+  // print(params);
   load.loading = true;
   dio
       .get(
@@ -120,10 +122,10 @@ Future<void> getPictureList(LoadResult load) async {
       total = meta.total;
       if (params['sorting'] == 'random' && params['seed']?.isEmpty == true) {
         params['seed'] = meta.seed;
-        load.setParams({'seed':meta.seed});
+        load.setParams({'seed': meta.seed});
       }
     }
-    load.setPictures(searchResult.data,total);
+    load.setPictures(searchResult.data, total);
     // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }

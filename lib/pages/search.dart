@@ -9,7 +9,7 @@ import '../store/model_view/search_model.dart';
 
 
 class SearchPage extends StatelessWidget {
-  SearchPage({Key? key}) : super(key: key);
+  const SearchPage({Key? key}) : super(key: key);
 
 
   @override

@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:wallhevan/component/picture_comp.dart';
 import 'package:wallhevan/pages/search.dart';
 import 'package:wallhevan/store/index.dart';
-import 'package:wallhevan/store/search_response/picture_info.dart';
 import 'package:wallhevan/store/store.dart';
 
 import '../component/search_page.dart';
@@ -73,7 +72,7 @@ class _PictureViewsState extends State<PictureViews> {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     Timer(const Duration(milliseconds: 100), () {
       widget.load.renderer();
     });
@@ -115,15 +114,17 @@ class _PictureViewsState extends State<PictureViews> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) =>
-                                        SearchBarPage(keyword: 'id:$tagId',tag:getTag(q:'id:$tagId',sort:'relevance'))));
+                                    builder: (_) => SearchBarPage(
+                                        keyword: 'id:$tagId',
+                                        tag: getTag(
+                                            q: 'id:$tagId',
+                                            sort: 'relevance'))));
                           }),
                         ],
                       ));
-                      // image = Container(
-                      //   padding: const EdgeInsets.all(5.0),
-                      //   child: image,
-                      // );
+                      image = Center(
+                        child: image,
+                      );
                       if (index == widget.curIndex) {
                         return Hero(
                           tag: item + index.toString(),

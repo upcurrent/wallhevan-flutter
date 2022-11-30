@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:wallhevan/model_view/picture_view_model.dart';
 import 'package:wallhevan/pages/global_theme.dart';
 import 'package:wallhevan/pages/picture_views.dart';
 import 'package:wallhevan/store/search_response/picture_info.dart';
 
 import '../component/picture_comp.dart';
-import '../store/index.dart';
 import '../store/store.dart';
 
 class PictureList extends StatefulWidget {
@@ -56,7 +52,6 @@ class _PictureListState extends State<PictureList>
       child: GetBuilder<LoadResult>(
           tag: widget.tag,
           builder: (load) {
-            print('5555555555555 picture_list builder');
             return MasonryGridView.count(
               padding: EdgeInsets.zero,
               crossAxisCount: 2,
