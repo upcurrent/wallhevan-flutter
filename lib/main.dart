@@ -51,7 +51,7 @@ class WallHaven extends StatelessWidget {
     return StoreProvider<MainState>(
         store: store,
         child: MaterialApp(
-          title: 'Flutter Demo',
+          title: 'wallhaven',
           supportedLocales: S.delegate.supportedLocales,
           localizationsDelegates: const [
             S.delegate,

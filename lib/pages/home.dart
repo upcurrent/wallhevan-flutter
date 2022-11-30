@@ -13,8 +13,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final LoadResult load = LoadResult();
+  final String tag = getTag();
   String sorting = 'toplist';
+  late LoadResult load;
 
   final StoreController storeController = Get.find();
 
@@ -46,32 +47,33 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
           child: GetBuilder<LoadResult>(
               init: load,
-              builder: (_) => GestureDetector(
-                  onTap: () {
-                    load.setParams({'sorting': value});
-                    load.sort = value.obs;
-                    load.init(renderer: true);
-                    // print('3333333333333 ${load.sort.value}   $value');
-                    getPictureList(load);
-                  },
-                  child: Container(
-                    decoration:
-                        load.sort.value == value ? selDecoration : decoration,
-                    height: 120,
-                    width: 120,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        SizedBox(
-                          height: 32,
-                          width: 32,
-                          child: image,
-                        ),
-                        text,
-                      ],
-                    ),
-                  ))));
+              builder: (load) {
+                return GestureDetector(
+                    onTap: () {
+                      load.setParams({'sorting': value});
+                      load.sort = value;
+                      load.init(renderer: true);
+                      getPictureList(load);
+                    },
+                    child: Container(
+                      decoration:
+                          load.sort == value ? selDecoration : decoration,
+                      height: 120,
+                      width: 120,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          SizedBox(
+                            height: 32,
+                            width: 32,
+                            child: image,
+                          ),
+                          text,
+                        ],
+                      ),
+                    ));
+              }));
     }
 
     return [
@@ -86,12 +88,15 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
-  final ScrollController scrollController =
-      ScrollController(keepScrollOffset: false);
-
   String keyword = '';
 
   void scrollTop() {}
+
+  @override
+  void initState() {
+    super.initState();
+    load = Get.find(tag: tag);
+  }
 
   void setKeyword(String value) {
     setState(() {
@@ -143,12 +148,15 @@ class _HomePageState extends State<HomePage> {
                           textInputAction: TextInputAction.search,
                           cursorColor: Colors.white,
                           style: const TextStyle(color: Colors.white),
-                          onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const SearchBarPage(
-                                        keyword: '',
-                                      ))),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => SearchBarPage(
+                                          keyword: '',
+                                          tag: getTag(sort: 'relevance'),
+                                        )));
+                          },
                           // onSubmitted: (value) {
                           //   home.setParams(
                           //       value != ''
@@ -180,7 +188,7 @@ class _HomePageState extends State<HomePage> {
               )
             ];
           },
-          body: PictureList(load: load),
+          body: PictureList(tag: tag),
         ));
   }
 }

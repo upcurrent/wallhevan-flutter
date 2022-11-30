@@ -5,7 +5,7 @@ import 'package:wallhevan/store/search_response/picture_info.dart';
 import 'package:wallhevan/store/search_response/search_result.dart';
 
 import '../api/api.dart';
-class StoreController extends GetxController{
+class StoreController{
   var pageNum = 0.obs;
   var load = LoadResult().obs;
   var pages = <String,LoadResult>{}.obs;
@@ -26,14 +26,20 @@ class StoreController extends GetxController{
   void updatePic(String path){
     if(cachePic.contains(path))return;
     cachePic().add(path);
-    update();
   }
   void homeScrollTop() {
     homeScrollCtrl.animateTo(0,
         duration: const Duration(milliseconds: 200), curve: Curves.ease);
   }
 }
-
+String getTag({String q="",String sort="toplist"}){
+  String tag = "${DateTime.now()}";
+  LoadResult load = LoadResult();
+  load.q = q;
+  load.sort = sort;
+  Get.put(load,tag:tag);
+  return tag;
+}
 class LoadResult extends GetxController{
   // todo
   final Map<String, String> params = {
@@ -45,24 +51,27 @@ class LoadResult extends GetxController{
     'page': '1',
     'q': '',
     'seed': '',
-  }.obs;
+  };
 
-  var pageNum = 1.obs;
-  var total = 0.obs;
-  var q = ''.obs;
-  var sort = 'toplist'.obs;
-  var loading = false.obs;
-  var pictures = <PictureInfo>[].obs;
+  int pageNum = 1;
+  int total = 0;
+  String q = '';
+  String sort = 'toplist';
+  bool loading = false;
+  var pictures = <PictureInfo>[];
 
   void init({renderer=false}){
-    pageNum = 1.obs;
-    total = 0.obs;
+    pageNum = 1;
+    total = 0;
     pictures.clear();
     if(renderer){
       update();
     }
   }
 
+  void renderer(){
+    update();
+  }
 
   void setParams(Map<String, String> args, {bool search = false}) {
     params.addAll(args);
@@ -71,36 +80,39 @@ class LoadResult extends GetxController{
     }
   }
   void setPictures(List<PictureInfo>? data,int total){
+    print("setPictures ${pictures.length}");
     if(data != null){
+      print("zzzzzzzzzzzzzzzzz ${data[0].path}      ");
       pictures.addAll(data);
       pageNum++;
-      update();
     }
-    this.total = total.obs;
+    this.total = total;
+    update();
     print(pictures.length);
   }
 
 }
 
 Future<void> getPictureList(LoadResult load) async {
-  if (load.loading.value) return;
-  if (load.pageNum.value != 1 && load.pictures.length >= load.total.value) return;
+  if (load.loading) return;
+  if (load.pageNum != 1 && load.pictures.length >= load.total) return;
   Map<String, String> params = <String,String>{}..addAll(load.params);
-  params['q'] = load.q.value;
-  params['page'] = "${load.pageNum.value}";
+  params['q'] = load.q;
+  params['page'] = "${load.pageNum}";
   params['apikey'] ??= await StorageManger.getApiKey();
-  params['sorting'] = (load.sort.value.isEmpty ? params['sorting'] : load.sort.value)!;
+  params['sorting'] = (load.sort.isEmpty ? params['sorting'] : load.sort)!;
   if (params['sorting'] != 'random') {
     params['seed'] = '';
   }
-  load.loading = true.obs;
+  print(params);
+  load.loading = true;
   dio
       .get(
     '/api/v1/search',
     queryParameters: params,
   )
       .then((response) {
-    load.loading = false.obs;
+    load.loading = false;
     SearchResult searchResult = SearchResult.fromJson(response.data);
     final meta = searchResult.meta;
     int total = 0;

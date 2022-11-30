@@ -3,32 +3,20 @@ import 'package:get/get.dart';
 import 'package:wallhevan/pages/picture_list.dart';
 import 'package:wallhevan/store/store.dart';
 
-class SearchBarPage extends StatefulWidget {
+class SearchBarPage extends StatelessWidget {
   final String keyword;
-  const SearchBarPage({super.key, required this.keyword});
-  @override
-  State<StatefulWidget> createState() => _SearchBarPageState();
-}
+  final String tag;
 
-class _SearchBarPageState extends State<SearchBarPage> {
-  final LoadResult load = LoadResult();
-  String q = '';
-  @override
-  void initState() {
-    super.initState();
-    q = widget.keyword;
-    load.q = q.obs;
-    load.sort = 'relevance'.obs;
-  }
-
-  void init(String value){
-    load.q = q.obs;
-    load.init();
-    getPictureList(load);
-  }
+  const SearchBarPage({super.key, required this.keyword, required this.tag});
 
   @override
   Widget build(BuildContext context) {
+    final LoadResult load = Get.find(tag: tag);
+    void init(String value) {
+      load.q = value;
+      load.init(renderer: true);
+      getPictureList(load);
+    }
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
@@ -43,32 +31,34 @@ class _SearchBarPageState extends State<SearchBarPage> {
                 });
           },
         ),
-        title: TextField(
-          controller: TextEditingController(
-            text: q,
+        title:
+           GetBuilder<LoadResult>(
+            init:load,
+            builder: (_) {
+              return TextField(
+                controller: TextEditingController(
+                  text: load.q,
+                ),
+                textInputAction: TextInputAction.search,
+                cursorColor: Colors.white,
+                style: const TextStyle(color: Colors.white),
+                onSubmitted: (value) {
+                  init(value);
+                },
+                decoration: const InputDecoration(
+                    hintText: 'Search....',
+                    suffixIcon: Icon(
+                      Icons.search,
+                      color: Colors.white,
+                    )),
+              );
+            },
           ),
-          textInputAction: TextInputAction.search,
-          cursorColor: Colors.white,
-          style: const TextStyle(color: Colors.white),
-          onSubmitted: (value) {
-            setState(() {
-              q = value;
-            });
-            init(value);
-          },
-          decoration: const InputDecoration(
-              hintText: 'Search....',
-              suffixIcon: Icon(
-                Icons.search,
-                color: Colors.white,
-              )),
-        ),
-        // actions: widget.delegate.buildActions(context),
-        // bottom: widget.delegate.buildBottom(context),
+
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
-        child: PictureList(load:load),
+        child: PictureList(tag: tag),
       ),
     );
   }

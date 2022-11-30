@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -71,6 +73,14 @@ class _PictureViewsState extends State<PictureViews> {
   }
 
   @override
+  void dispose(){
+    Timer(const Duration(milliseconds: 100), () {
+      widget.load.renderer();
+    });
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var load = widget.load;
     return ConstrainedBox(
@@ -106,7 +116,7 @@ class _PictureViewsState extends State<PictureViews> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (_) =>
-                                        SearchBarPage(keyword: 'id:$tagId')));
+                                        SearchBarPage(keyword: 'id:$tagId',tag:getTag(q:'id:$tagId',sort:'relevance'))));
                           }),
                         ],
                       ));

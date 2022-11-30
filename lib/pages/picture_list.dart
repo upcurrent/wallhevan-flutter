@@ -13,13 +13,13 @@ import '../store/index.dart';
 import '../store/store.dart';
 
 class PictureList extends StatefulWidget {
-  const PictureList({super.key, this.keepAlive, this.sort, this.load});
-
-  final LoadResult? load;
+  const PictureList({super.key, this.keepAlive, this.sort, required this.tag});
 
   final String? sort;
 
   final bool? keepAlive;
+
+  final String tag;
 
   @override
   State<StatefulWidget> createState() {
@@ -29,31 +29,34 @@ class PictureList extends StatefulWidget {
 
 class _PictureListState extends State<PictureList>
     with AutomaticKeepAliveClientMixin {
-  var load = LoadResult();
+  late LoadResult load;
+  StoreController controller = Get.find();
+
   @override
   void initState() {
     super.initState();
-    load = widget.load ?? load;
+    // load = widget.load ?? load;
+    load = Get.find(tag: widget.tag);
     getPictureList(load);
   }
 
-  StoreController controller = Get.find();
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return GlobalTheme.backImg(NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (scrollInfo.metrics.pixels >=
-                  scrollInfo.metrics.maxScrollExtent - 400 &&
-              load.pictures.length < load.total.value) {
-            getPictureList(load);
-            return true;
-          }
-          return false;
-        },
-        child: GetBuilder<LoadResult>(
-          init: load,
+      onNotification: (ScrollNotification scrollInfo) {
+        if (scrollInfo.metrics.pixels >=
+                scrollInfo.metrics.maxScrollExtent - 400 &&
+            load.pictures.length < load.total) {
+          getPictureList(load);
+          return true;
+        }
+        return false;
+      },
+      child: GetBuilder<LoadResult>(
+          tag: widget.tag,
           builder: (load) {
+            print('5555555555555 picture_list builder');
             return MasonryGridView.count(
               padding: EdgeInsets.zero,
               crossAxisCount: 2,
@@ -81,8 +84,8 @@ class _PictureListState extends State<PictureList>
                 // : PictureComp.create(context, load.pictures[index], url)));
               },
             );
-          },
-        )));
+          }),
+    ));
   }
 
   @override

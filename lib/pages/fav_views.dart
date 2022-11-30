@@ -102,7 +102,7 @@ class FavPictureViews extends StatelessWidget {
                             //   Navigator.pop(context);
                             // }else{
                               pictureView.setParams('id:$tagId');
-                              Navigator.push(context, MaterialPageRoute(builder: (_)=>SearchBarPage(keyword: 'id:$tagId')));
+                              // Navigator.push(context, MaterialPageRoute(builder: (_)=> SearchBarPage(keyword: 'id:$tagId')));
                             // }
                           }),
                         ],
