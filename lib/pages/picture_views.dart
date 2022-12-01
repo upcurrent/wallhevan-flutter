@@ -103,7 +103,7 @@ class _PictureViewsState extends State<PictureViews> {
                       var item = load.pictures[index].path;
                       Widget image = PictureComp(
                           image: load.pictures[index],
-                          type: PictureComp.fullSizePicture,
+                          type: PictureComp.pictureViews,
                           url: load.pictures[index].path);
                       image = SingleChildScrollView(
                           child: Column(
@@ -122,9 +122,9 @@ class _PictureViewsState extends State<PictureViews> {
                           }),
                         ],
                       ));
-                      image = Center(
-                        child: image,
-                      );
+                      // image = Center(
+                      //   child: image,
+                      // );
                       if (index == widget.curIndex) {
                         return Hero(
                           tag: item + index.toString(),

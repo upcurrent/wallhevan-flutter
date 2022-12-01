@@ -12,9 +12,9 @@ class PictureComp extends StatefulWidget {
   final PictureInfo image;
   final int type;
   final String url;
-  static const int previewPicture = 1;
-  static const int fullSizePicture = 2;
-  static const int originPicture = 3;
+  static const int pictureList = 1;
+  static const int pictureViews = 2;
+  static const int fallSizePicture = 3;
   const PictureComp(
       {super.key,
       required this.image,
@@ -41,7 +41,7 @@ class PictureComp extends StatefulWidget {
       pHeight: height,
       halfWidth: width,
       image: picture,
-      type: previewPicture,
+      type: pictureList,
       url: url,
     );
   }
@@ -51,43 +51,55 @@ class PictureComp extends StatefulWidget {
 }
 
 class _PictureCompState extends State<PictureComp> {
+  EdgeInsets getPadding() {
+    var size = MediaQuery.of(context).size;
+    double height =
+        size.width * (widget.image.dimensionY / widget.image.dimensionX);
+    double padding = (size.height - height) / 2;
+    padding = padding < 0 ? 0 : padding;
+    return EdgeInsets.fromLTRB(0, padding, 0, 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
         height: widget.pHeight,
         width: widget.halfWidth,
         padding: const EdgeInsets.all(2),
-        child: widget.type == PictureComp.fullSizePicture
+        child: widget.type == PictureComp.pictureViews
             ? GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, '/picture',
                       arguments: widget.image);
                 },
-                child: ExtendedImage.network(
-                  widget.url,
-                  fit: BoxFit.scaleDown,
-                  // enableSlideOutPage:true,
-                  cache: true,
-                  loadStateChanged: (ExtendedImageState state) {
-                    switch (state.extendedImageLoadState) {
-                      case LoadState.loading:
-                        Thumbs? thumbs = widget.image.thumbs;
-                        return ExtendedImage.network(
-                          thumbs.original!,
-                          width: double.infinity,
-                          fit: BoxFit.fitWidth,
-                        );
-                      case LoadState.completed:
-                        return null;
-                      case LoadState.failed:
-                        return null;
-                    }
-                  },
-                  mode: ExtendedImageMode.none,
-                  //cancelToken: cancellationToken,
+                child: Padding(
+                  padding: getPadding(),
+                  child: ExtendedImage.network(
+                    widget.url,
+                    fit: BoxFit.scaleDown,
+                    // enableSlideOutPage:true,
+                    cache: true,
+                    loadStateChanged: (ExtendedImageState state) {
+                      switch (state.extendedImageLoadState) {
+                        case LoadState.loading:
+                          Thumbs? thumbs = widget.image.thumbs;
+                          return ExtendedImage.network(
+                            thumbs.original!,
+                            width: double.infinity,
+                            fit: BoxFit.fitWidth,
+                          );
+                        case LoadState.completed:
+                          return null;
+                        case LoadState.failed:
+                          return null;
+                      }
+                    },
+                    mode: ExtendedImageMode.none,
+                    //cancelToken: cancellationToken,
+                  ),
                 ),
               )
-            : widget.type == PictureComp.originPicture
+            : widget.type == PictureComp.fallSizePicture
                 ? ExtendedImage.network(
                     widget.url,
                     fit: BoxFit.scaleDown,

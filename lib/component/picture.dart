@@ -12,7 +12,7 @@ class Picture extends StatelessWidget {
     PictureInfo routeParams =
         ModalRoute.of(context)?.settings.arguments as PictureInfo;
     return Scaffold(
-      body: GlobalTheme.backImg(Center(child: PictureComp(image: routeParams, type: PictureComp.originPicture,url:routeParams.path))),
+      body: GlobalTheme.backImg(Center(child: PictureComp(image: routeParams, type: PictureComp.fallSizePicture,url:routeParams.path))),
       // border: Border.all(color: Colors.red, width: 1.0),
       // shape: boxShape,
       // borderRadius: BorderRadius.all(Radius.circular(30.0)),

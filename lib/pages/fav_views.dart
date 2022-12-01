@@ -90,7 +90,7 @@ class FavPictureViews extends StatelessWidget {
                       var item = pictures[index].path;
                       Widget image = PictureComp(
                           image: pictures[index],
-                          type: PictureComp.fullSizePicture,
+                          type: PictureComp.pictureViews,
                           url: pictures[index].path);
                       image = ListView(
                         children: [
