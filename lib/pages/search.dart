@@ -152,13 +152,14 @@ class HGFButton extends StatelessWidget {
       required this.selected,
       this.type = '0',
       this.value = '',
-      this.disabled = false});
+      this.disabled = false,this.size});
   final String text;
   final String value;
   final bool selected;
   final Function onSelected;
   final String type;
   final bool disabled;
+  final double? size;
   List<Color> getColor() {
     switch (type) {
       case '1':
@@ -186,6 +187,7 @@ class HGFButton extends StatelessWidget {
             color: getColor()[1],
             text: text,
             shape: GFButtonShape.standard,
+            size:size ?? 35,
           )
         : GFButton(
             onPressed: disabled
@@ -198,6 +200,7 @@ class HGFButton extends StatelessWidget {
             disabledColor: const Color(0x1e1e1e80),
             text: text,
             shape: GFButtonShape.standard,
+            size:size ?? 35,
           );
   }
 }

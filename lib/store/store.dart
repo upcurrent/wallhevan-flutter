@@ -102,23 +102,13 @@ class SearchQuery extends GetxController{
 }
 
 class LoadResult extends GetxController {
-  // todo
-  final Map<String, String> params = {
-    'categories': '010',
-    'purity': '110',
-    'topRange': '1M',
-    'sorting': 'toplist',
-    'order': 'desc',
-    'page': '1',
-    'q': '',
-    'seed': '',
-  };
 
   int pageNum = 1;
   int total = 0;
   String q = '';
   String sort = 'toplist';
   bool loading = false;
+  String seed = '';
   var pictures = <PictureInfo>[];
 
   void init({renderer = false}) {
@@ -134,19 +124,13 @@ class LoadResult extends GetxController {
     update();
   }
 
-  void setParams(Map<String, String> args, {bool search = false}) {
-    params.addAll(args);
-    if (search) {
-      init();
-    }
-  }
-
-  void setPictures(List<PictureInfo>? data, int total) {
+  void setPictures(List<PictureInfo>? data, int total, String seed) {
     if (data != null) {
       pictures.addAll(data);
       pageNum++;
     }
     this.total = total;
+    this.seed = seed;
     update();
   }
 }
@@ -154,13 +138,14 @@ class LoadResult extends GetxController {
 Future<void> getPictureList(LoadResult load) async {
   if (load.loading) return;
   if (load.pageNum != 1 && load.pictures.length >= load.total) return;
-  Map<String, String> params = <String, String>{}..addAll(load.params);
+  SearchQuery query = Get.find();
+  Map<String, String> params = <String, String>{}..addAll(query.params);
   params['q'] = load.q;
   params['page'] = "${load.pageNum}";
   params['apikey'] ??= await StorageManger.getApiKey();
   params['sorting'] = (load.sort.isEmpty ? params['sorting'] : load.sort)!;
-  if (params['sorting'] != 'random') {
-    params['seed'] = '';
+  if (params['sorting'] == 'random') {
+    params['seed'] = load.seed;
   }
   // print(params);
   load.loading = true;
@@ -174,14 +159,15 @@ Future<void> getPictureList(LoadResult load) async {
     SearchResult searchResult = SearchResult.fromJson(response.data);
     final meta = searchResult.meta;
     int total = 0;
+    String seed = '';
     if (meta != null) {
       total = meta.total;
       if (params['sorting'] == 'random' && params['seed']?.isEmpty == true) {
         params['seed'] = meta.seed;
-        load.setParams({'seed': meta.seed});
+        seed = meta.seed;
       }
     }
-    load.setPictures(searchResult.data, total);
+    load.setPictures(searchResult.data, total, seed);
     // ignore: invalid_return_type_for_catch_error, avoid_print
   }).catchError((error) => {print(error.toString())});
 }

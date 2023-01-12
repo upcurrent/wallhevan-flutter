@@ -11,6 +11,7 @@ import 'package:wallhevan/store/store.dart';
 import '../component/search_page.dart';
 import '../store/picture_res/picture_data.dart';
 import 'global_theme.dart';
+import '/generated/l10n.dart';
 
 class PictureViews extends StatefulWidget {
   const PictureViews({
@@ -59,7 +60,19 @@ class _PictureViewsState extends State<PictureViews> {
                 onSelected: (_) => showSearch(tag.id))));
             return Column(
               mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Wrap(
+                  spacing: 2,
+                  children: [
+                    Image.network(data.uploader!.avatar!.p128),
+                    Text(data.uploader!.username,
+                        style: const TextStyle(
+                            color: Color(0xff387799),
+                            decoration: TextDecoration.none,
+                            fontSize: 25)),
+                  ],
+                ),
                 Wrap(
                   spacing: 2,
                   children: tagWidgets,
@@ -77,6 +90,14 @@ class _PictureViewsState extends State<PictureViews> {
       widget.load.renderer();
     });
     super.dispose();
+  }
+
+  void addSearchPage(BuildContext context, String keyword) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => SearchBarPage(
+                keyword: keyword, tag: getTag(q: keyword, sort: 'relevance'))));
   }
 
   @override
@@ -100,26 +121,29 @@ class _PictureViewsState extends State<PictureViews> {
                 builder: (_) {
                   return ExtendedImageGesturePageView.builder(
                     itemBuilder: (BuildContext context, int index) {
-                      var item = load.pictures[index].path;
+                      var picture = load.pictures[index];
                       Widget image = PictureComp(
-                          image: load.pictures[index],
+                          image: picture,
                           type: PictureComp.pictureViews,
-                          url: load.pictures[index].path);
+                          url: picture.path);
                       image = SingleChildScrollView(
                           child: Column(
                         children: [
                           // Expanded(child: image),
                           image,
-                          picDataBuild(load.pictures[index].id, (int tagId) {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => SearchBarPage(
-                                        keyword: 'id:$tagId',
-                                        tag: getTag(
-                                            q: 'id:$tagId',
-                                            sort: 'relevance'))));
-                          }),
+                          Center(
+                              child: HGFButton(
+                            text: S.current.more,
+                            type: "1",
+                            selected: true,
+                            size: 44,
+                            onSelected: (_) =>
+                                addSearchPage(context, 'like:${picture.id}'),
+                          )),
+                          picDataBuild(
+                              picture.id,
+                              (int tagId) =>
+                                  addSearchPage(context, 'id:$tagId')),
                         ],
                       ));
                       // image = Center(
@@ -127,7 +151,7 @@ class _PictureViewsState extends State<PictureViews> {
                       // );
                       if (index == widget.curIndex) {
                         return Hero(
-                          tag: item + index.toString(),
+                          tag: picture.path + index.toString(),
                           child: image,
                         );
                       } else {

@@ -14,7 +14,7 @@ import 'package:wallhevan/store/model_view/main_view.dart';
 import 'package:wallhevan/store/store.dart';
 import 'pages/favorites.dart';
 import 'pages/home.dart';
-import 'pages/search.dart';
+import 'pages/search_query.dart';
 import 'store/index.dart';
 import 'component/picture.dart';
 import 'account/account.dart';
@@ -34,7 +34,6 @@ void main() {
     ],
   );
   Get.put(StoreController());
-  Get.put(SearchQuery());
   runApp(WallHaven(
     store: store,
   ));
@@ -134,6 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    Get.put(SearchQuery());
     _controller = PageController(initialPage: pageIndex, keepPage: true);
     super.initState();
   }
@@ -158,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
         resizeToAvoidBottomInset: false,
         drawer: GFDrawer(
           // elevation: 0,
-          child: GlobalTheme.backImg(SearchPage()),
+          child: GlobalTheme.backImg(const SearchPage()),
         ),
         bottomNavigationBar:
             StoreConnector<MainState, MainModel>(converter: (store) {

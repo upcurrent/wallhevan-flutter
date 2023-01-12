@@ -50,7 +50,6 @@ class _HomePageState extends State<HomePage> {
               builder: (load) {
                 return GestureDetector(
                     onTap: () {
-                      load.setParams({'sorting': value});
                       load.sort = value;
                       load.init(renderer: true);
                       getPictureList(load);

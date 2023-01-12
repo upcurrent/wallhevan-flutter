@@ -29,6 +29,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "home": MessageLookupByLibrary.simpleMessage("首页"),
         "hot": MessageLookupByLibrary.simpleMessage("热门"),
         "latest": MessageLookupByLibrary.simpleMessage("最新上传"),
+        "more": MessageLookupByLibrary.simpleMessage("查看相似图片"),
         "my": MessageLookupByLibrary.simpleMessage("我的"),
         "people": MessageLookupByLibrary.simpleMessage("人物"),
         "random": MessageLookupByLibrary.simpleMessage("随机"),

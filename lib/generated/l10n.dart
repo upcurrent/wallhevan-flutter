@@ -259,6 +259,16 @@ class S {
       args: [],
     );
   }
+
+  /// `More like this`
+  String get more {
+    return Intl.message(
+      'More like this',
+      name: 'more',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
