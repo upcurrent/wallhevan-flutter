@@ -34,6 +34,7 @@ void main() {
     ],
   );
   Get.put(StoreController());
+  Get.put(SearchQuery());
   runApp(WallHaven(
     store: store,
   ));
